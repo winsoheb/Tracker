@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Log · Time Tracker{% endblock %}
+{% block content %}
+
+<div class="card" style="margin-bottom:18px;">
+  <h2>Work Log</h2>
+  <form method="get" action="{{ url_for('entries_page') }}">
+    <div class="row" style="align-items:flex-end;">
+      <div><label>From</label><input type="date" name="start" value="{{ start }}"></div>
+      <div><label>To</label><input type="date" name="end" value="{{ end }}"></div>
+      <div style="flex:0 0 auto;"><button class="btn" type="submit">Filter</button></div>
+    </div>
+  </form>
+  <div class="muted mt">Total in range: <strong>{{ total | hms }}</strong> across {{ entries|length }} entries</div>
+</div>
+
+<div class="card">
+  {% if entries %}
+  <table>
+    <thead><tr><th>Date</th><th>Task</th><th>Category</th><th>Time</th><th>Duration</th><th>Break</th><th></th></tr></thead>
+    <tbody>
+      {% for e in entries %}
+      <tr>
+        <td class="muted">{{ e.work_date }}</td>
+        <td>{{ e.task }}{% if e.notes %}<div class="muted" style="font-size:12px">{{ e.notes }}</div>{% endif %}</td>
+        <td><span class="chip">{{ e.category }}</span></td>
+        <td class="muted">{% if e.start_time %}{{ e.start_time }}{% if e.end_time %}–{{ e.end_time }}{% endif %}{% else %}—{% endif %}</td>
+        <td>{{ e.duration_secs | hms }}</td>
+        <td class="muted">{{ e.break_minutes }}m</td>
+        <td class="right">
+          <details class="editor">
+            <summary>Edit</summary>
+            <form method="post" action="{{ url_for('entries_update', entry_id=e.id) }}" style="text-align:left;margin-top:8px;min-width:260px;">
+              <label>Task</label><input type="text" name="task" value="{{ e.task }}" required>
+              <div class="row">
+                <div><label>Category</label>
+                  <select name="category">
+                    {% for c in categories %}<option value="{{ c }}" {% if c==e.category %}selected{% endif %}>{{ c }}</option>{% endfor %}
+                    {% if e.category not in categories %}<option value="{{ e.category }}" selected>{{ e.category }}</option>{% endif %}
+                  </select>
+                </div>
+                <div><label>Date</label><input type="date" name="work_date" value="{{ e.work_date }}"></div>
+              </div>
+              <div class="row">
+                <div><label>Hours</label><input type="number" name="hours" min="0" value="{{ e.duration_secs // 3600 }}"></div>
+                <div><label>Minutes</label><input type="number" name="minutes" min="0" value="{{ (e.duration_secs % 3600) // 60 }}"></div>
+                <div><label>Break (m)</label><input type="number" name="break_minutes" min="0" value="{{ e.break_minutes }}"></div>
+              </div>
+              <label>Notes</label><textarea name="notes">{{ e.notes }}</textarea>
+              <button class="btn sm mt" type="submit">Save</button>
+            </form>
+          </details>
+          <form method="post" action="{{ url_for('entries_delete', entry_id=e.id) }}" style="display:inline">
+            <button class="btn red sm" onclick="return confirm('Delete this entry?')">✕</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">No entries in this date range.</div>
+  {% endif %}
+</div>
+
+{% endblock %}

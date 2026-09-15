@@ -1,0 +1,187 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id             String          @id @default(uuid())
+  name           String
+  email          String          @unique
+  avatar         String?
+  timezone       String          @default("UTC")
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  categories     Category[]
+  projects       Project[]
+  timeEntries    TimeEntry[]
+  runningTimers  RunningTimer[]
+  breaks         Break[]
+  shifts         Shift[]
+  scheduledTasks ScheduledTask[]
+  settings       Setting?
+  activityEvents ActivityEvent[]
+}
+
+model Category {
+  id             String          @id @default(uuid())
+  userId         String
+  name           String
+  description    String?
+  icon           String?
+  color          String?
+  hourlyGoal     Int?
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projects       Project[]
+  timeEntries    TimeEntry[]
+  scheduledTasks ScheduledTask[]
+  runningTimers  RunningTimer[]
+}
+
+model Project {
+  id             String          @id @default(uuid())
+  userId         String
+  name           String
+  description    String?
+  categoryId     String?
+  color          String?
+  status         String          @default("ACTIVE") // ACTIVE, PAUSED, COMPLETED, ARCHIVED
+  startDate      DateTime?
+  dueDate        DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category       Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  timeEntries    TimeEntry[]
+  scheduledTasks ScheduledTask[]
+  runningTimers  RunningTimer[]
+}
+
+model TimeEntry {
+  id             String          @id @default(uuid())
+  userId         String
+  projectId      String?
+  categoryId     String?
+  title          String
+  description    String?
+  startedAt      DateTime
+  endedAt        DateTime
+  duration       Int             // duration in seconds
+  source         String          // TIMER, MANUAL, PLANNER
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project        Project?        @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  category       Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+}
+
+model RunningTimer {
+  id                  String          @id @default(uuid())
+  userId              String          @unique
+  projectId           String?
+  categoryId          String?
+  title               String
+  description         String?
+  startedAt           DateTime
+  pausedAt            DateTime?
+  accumulatedDuration Int             @default(0) // seconds accumulated before current resume
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  user                User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project             Project?        @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  category            Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+}
+
+model Break {
+  id             String          @id @default(uuid())
+  userId         String
+  type           String          // Lunch, Short break, Tea, Personal, Other
+  startedAt      DateTime
+  endedAt        DateTime?
+  duration       Int?            // seconds
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Shift {
+  id              String          @id @default(uuid())
+  userId          String
+  date            DateTime        // Date only
+  scheduledStart  DateTime?
+  scheduledEnd    DateTime?
+  actualStart     DateTime?
+  actualEnd       DateTime?
+  expectedMinutes Int?
+  workedMinutes   Int?
+  breakMinutes    Int?
+  overtimeMinutes Int?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ScheduledTask {
+  id               String          @id @default(uuid())
+  userId           String
+  projectId        String?
+  categoryId       String?
+  title            String
+  description      String?
+  startAt          DateTime
+  endAt            DateTime
+  estimatedMinutes Int
+  priority         String          @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  status           String          @default("PLANNED") // PLANNED, IN_PROGRESS, COMPLETED, CANCELLED, MISSED
+  color            String?
+  recurrenceRule   String?
+  completedAt      DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project          Project?        @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  category         Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+}
+
+model Setting {
+  id               String          @id @default(uuid())
+  userId           String          @unique
+  workStart        String          @default("09:00")
+  workEnd          String          @default("17:00")
+  dailyGoalHours   Float           @default(8)
+  workingDays      String          @default("1,2,3,4,5") // Mon-Fri
+  theme            String          @default("dark") // dark, light, system
+  accentColor      String          @default("blue")
+  reducedMotion    Boolean         @default(false)
+  notifications    Boolean         @default(true)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ActivityEvent {
+  id             String          @id @default(uuid())
+  userId         String
+  type           String          // Create, Update, Delete
+  entity         String          // Category, Project, TimeEntry
+  entityId       String
+  details        String?
+  createdAt      DateTime        @default(now())
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
