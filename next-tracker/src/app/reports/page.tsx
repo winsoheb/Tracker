@@ -11,10 +11,20 @@ export const revalidate = 0
 export default async function ReportsPage(props: { searchParams?: { start?: string, end?: string } }) {
   const searchParams = props.searchParams ? await Promise.resolve(props.searchParams) : {};
   
+  const range = searchParams.range || "today"
+  
   const filter: any = {}
   if (searchParams.start && searchParams.end) {
     filter.startDate = new Date(searchParams.start)
     filter.endDate = new Date(searchParams.end)
+  } else if (range === "today") {
+    // Default to today's data if no start/end provided
+    const today = new Date()
+    today.setHours(0,0,0,0)
+    const end = new Date()
+    end.setHours(23,59,59,999)
+    filter.startDate = today
+    filter.endDate = end
   }
 
   const data = await getReports(filter)

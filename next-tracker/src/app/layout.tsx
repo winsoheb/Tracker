@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { CommandPalette } from "@/components/layout/command-palette";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -22,6 +23,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${inter.variable} font-sans antialiased min-h-screen bg-background text-foreground selection:bg-primary/30`}
+        suppressHydrationWarning
       >
         <ThemeProvider
           attribute="class"
@@ -35,9 +37,10 @@ export default function RootLayout({
               <header className="h-16 flex items-center px-6 border-b border-white/5 bg-background/40 backdrop-blur-3xl sticky top-0 z-10">
                 <SidebarTrigger className="mr-4 hover:bg-white/10" />
                 <div className="flex-1 flex justify-end items-center gap-4">
-                  <div className="text-xs text-muted-foreground/60 tracking-widest uppercase">
-                    Press <kbd className="px-2 py-1 bg-white/5 rounded-md border border-white/10 text-white font-mono shadow-sm">Ctrl</kbd> + <kbd className="px-2 py-1 bg-white/5 rounded-md border border-white/10 text-white font-mono shadow-sm">K</kbd>
+                  <div className="text-xs text-muted-foreground tracking-widest uppercase hidden sm:block">
+                    Press <kbd className="px-2 py-1 bg-muted rounded-md border border-border text-foreground font-mono shadow-sm">Alt</kbd> + <kbd className="px-2 py-1 bg-muted rounded-md border border-border text-foreground font-mono shadow-sm">K</kbd>
                   </div>
+                  <ThemeToggle />
                 </div>
               </header>
               <div className="flex-1 p-6">

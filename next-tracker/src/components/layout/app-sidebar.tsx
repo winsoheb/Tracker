@@ -36,8 +36,8 @@ export function AppSidebar() {
     <Sidebar className="border-r border-white/5 bg-background/40 backdrop-blur-3xl">
       <SidebarHeader className="p-6 flex items-center justify-center">
         <div className="flex items-center gap-3">
-          <Clock className="w-7 h-7 text-primary neon-glow" />
-          <span className="font-bold text-xl tracking-[0.2em] neon-text uppercase text-white">Tracker</span>
+          <Clock className="w-7 h-7 text-primary drop-shadow-[0_0_8px_rgba(147,51,234,0.5)]" />
+          <span className="font-bold text-xl tracking-[0.2em] uppercase bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-400">Tracker</span>
         </div>
       </SidebarHeader>
       <SidebarContent className="px-2 mt-4">

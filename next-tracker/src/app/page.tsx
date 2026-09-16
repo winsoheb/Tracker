@@ -14,7 +14,7 @@ export default async function DashboardPage() {
   return (
     <div className="flex flex-col gap-8 w-full max-w-6xl mx-auto py-8">
       
-      <header className="mb-4">
+      <header className="mb-4 flex flex-col items-center text-center">
         <h1 className="text-3xl font-light tracking-tight mb-2">
           Good morning, <span className="font-semibold text-primary neon-text">Admin</span>.
         </h1>
@@ -23,7 +23,7 @@ export default async function DashboardPage() {
         </p>
       </header>
 
-      <section className="relative w-full z-20 min-h-[120px] flex items-center">
+      <section className="relative w-full z-20 min-h-[120px] flex flex-col items-center justify-center">
         <TimerContainer categories={data.categories} />
       </section>
 

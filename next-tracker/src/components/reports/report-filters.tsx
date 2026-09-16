@@ -12,14 +12,21 @@ export function ReportFilters({ entries }: { entries: any[] }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   
-  const currentRange = searchParams.get("range") || "all"
+  const currentRange = searchParams.get("range") || "today"
 
   const setRange = (range: string) => {
     const params = new URLSearchParams(searchParams)
     params.set("range", range)
     
     const today = new Date()
-    if (range === "7d") {
+    if (range === "today") {
+      const start = new Date(today)
+      start.setHours(0,0,0,0)
+      const end = new Date(today)
+      end.setHours(23,59,59,999)
+      params.set("start", start.toISOString())
+      params.set("end", end.toISOString())
+    } else if (range === "7d") {
       params.set("start", subDays(today, 7).toISOString())
       params.set("end", today.toISOString())
     } else if (range === "30d") {
@@ -67,6 +74,14 @@ export function ReportFilters({ entries }: { entries: any[] }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 mb-6 p-4 glass rounded-xl">
       <div className="flex items-center gap-2">
+        <Button 
+          variant={currentRange === "today" ? "default" : "outline"} 
+          size="sm" 
+          onClick={() => setRange("today")}
+          className="rounded-lg"
+        >
+          Today
+        </Button>
         <Button 
           variant={currentRange === "all" ? "default" : "outline"} 
           size="sm" 

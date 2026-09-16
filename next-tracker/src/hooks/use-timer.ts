@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { getActiveTimer, startTimer, pauseTimer, resumeTimer, stopTimer, cancelTimer } from "@/lib/actions/timer"
+import { getActiveTimers, startTimer, pauseTimer, resumeTimer, stopTimer, cancelTimer } from "@/lib/actions/timer"
 
 export type RunningTimerData = {
   id: string
@@ -17,69 +17,41 @@ export type RunningTimerData = {
   project?: { name: string, color: string | null } | null
 }
 
-export function useTimer(initialTimer: RunningTimerData | null = null) {
-  const [timer, setTimer] = useState<RunningTimerData | null>(initialTimer)
-  const [elapsedSeconds, setElapsedSeconds] = useState(0)
-  const [isLoading, setIsLoading] = useState(!initialTimer)
+export function useTimer(initialTimers: RunningTimerData[] = []) {
+  const [timers, setTimers] = useState<RunningTimerData[]>(initialTimers)
+  const [isLoading, setIsLoading] = useState(!initialTimers || initialTimers.length === 0)
   const [isPending, setIsPending] = useState(false) // For mutations
 
-  const fetchTimer = useCallback(async () => {
+  const fetchTimers = useCallback(async () => {
     try {
-      const active = await getActiveTimer()
-      // @ts-ignore - Handle Date objects coming from Server Action correctly
-      setTimer(active as RunningTimerData | null)
+      const activeTimers = await getActiveTimers()
+      // @ts-ignore
+      setTimers(activeTimers as RunningTimerData[])
     } catch (e) {
-      console.error("Failed to fetch active timer", e)
+      console.error("Failed to fetch active timers", e)
     } finally {
       setIsLoading(false)
     }
   }, [])
 
-  // Initial fetch if no initialTimer provided
+  // Initial fetch if no initialTimers provided
   useEffect(() => {
-    if (!initialTimer) {
-      fetchTimer()
+    if (initialTimers.length === 0) {
+      fetchTimers()
     } else {
       setIsLoading(false)
     }
-  }, [initialTimer, fetchTimer])
+  }, [initialTimers, fetchTimers])
 
-  // Tick effect
-  useEffect(() => {
-    if (!timer) {
-      setElapsedSeconds(0)
-      return
-    }
-
-    const calculateElapsed = () => {
-      let duration = timer.accumulatedDuration
-      if (!timer.pausedAt) {
-        // Must parse dates because Server Actions serialize dates to strings over the wire sometimes,
-        // though in modern Next.js it might keep them as Dates, it's safer to instantiate
-        const started = new Date(timer.startedAt)
-        const sessionDuration = Math.floor((new Date().getTime() - started.getTime()) / 1000)
-        duration += sessionDuration
-      }
-      return duration
-    }
-
-    setElapsedSeconds(calculateElapsed())
-
-    if (timer.pausedAt) return
-
-    const interval = setInterval(() => {
-      setElapsedSeconds(calculateElapsed())
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [timer])
+  // Removed central ticking effect to improve performance.
+  // Each ActiveTimer now manages its own tick locally.
 
   const handleStart = async (data: { title: string, categoryId?: string, projectId?: string }) => {
     setIsPending(true)
     try {
       const newTimer = await startTimer(data)
       // @ts-expect-error
-      setTimer(newTimer)
+      setTimers(prev => [...prev, newTimer])
     } catch (e: any) {
       console.error("Failed to start timer:", e)
       alert("Failed to start task: " + e?.message)
@@ -88,67 +60,62 @@ export function useTimer(initialTimer: RunningTimerData | null = null) {
     }
   }
 
-  const handlePause = async () => {
-    if (!timer || timer.pausedAt) return
+  const handlePause = async (timerId: string) => {
+    const target = timers.find(t => t.id === timerId)
+    if (!target || target.pausedAt) return
     setIsPending(true)
     try {
-      const updated = await pauseTimer()
+      const updated = await pauseTimer(timerId)
       // @ts-ignore
-      setTimer(updated)
+      setTimers(prev => prev.map(t => t.id === timerId ? updated : t))
     } finally {
       setIsPending(false)
     }
   }
 
-  const handleResume = async () => {
-    if (!timer || !timer.pausedAt) return
+  const handleResume = async (timerId: string) => {
+    const target = timers.find(t => t.id === timerId)
+    if (!target || !target.pausedAt) return
     setIsPending(true)
     try {
-      const updated = await resumeTimer()
+      const updated = await resumeTimer(timerId)
       // @ts-ignore
-      setTimer(updated)
+      setTimers(prev => prev.map(t => t.id === timerId ? updated : t))
     } finally {
       setIsPending(false)
     }
   }
 
-  const handleStop = async () => {
-    if (!timer) return
+  const handleStop = async (timerId: string) => {
     setIsPending(true)
     try {
-      await stopTimer()
-      setTimer(null)
-      setElapsedSeconds(0)
+      await stopTimer(timerId)
+      setTimers(prev => prev.filter(t => t.id !== timerId))
     } finally {
       setIsPending(false)
     }
   }
 
-  const handleCancel = async () => {
-    if (!timer) return
+  const handleCancel = async (timerId: string) => {
     setIsPending(true)
     try {
-      await cancelTimer()
-      setTimer(null)
-      setElapsedSeconds(0)
+      await cancelTimer(timerId)
+      setTimers(prev => prev.filter(t => t.id !== timerId))
     } finally {
       setIsPending(false)
     }
   }
 
   return {
-    timer,
-    elapsedSeconds,
+    timers,
     isLoading,
     isPending,
-    isRunning: !!timer && !timer.pausedAt,
-    isPaused: !!timer && !!timer.pausedAt,
     handleStart,
     handlePause,
     handleResume,
     handleStop,
     handleCancel,
-    refresh: fetchTimer
+    refresh: fetchTimers
   }
 }
 

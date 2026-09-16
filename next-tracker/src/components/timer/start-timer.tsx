@@ -14,11 +14,11 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 export function StartTimer(props: ReturnType<typeof useTimer> & { categories?: any[] }) {
-  const { timer, handleStart, isPending, isLoading, categories = [] } = props
+  const { timers = [], handleStart, isPending, isLoading, categories = [] } = props
   const [title, setTitle] = useState("")
   const [categoryId, setCategoryId] = useState<string | null>(null)
 
-  if (isLoading || timer) return null
+  if (isLoading || timers.length >= 5) return null
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

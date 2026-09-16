@@ -87,7 +87,7 @@ model TimeEntry {
 
 model RunningTimer {
   id                  String          @id @default(uuid())
-  userId              String          @unique
+  userId              String
   projectId           String?
   categoryId          String?
   title               String

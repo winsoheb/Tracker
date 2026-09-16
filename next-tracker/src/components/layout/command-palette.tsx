@@ -24,8 +24,8 @@ export function CommandPalette() {
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      // Toggle palette on Ctrl/Cmd + K
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+      // Toggle palette on Alt + K
+      if (e.key === "k" && e.altKey) {
         e.preventDefault()
         setOpen((open) => !open)
       }
@@ -54,7 +54,7 @@ export function CommandPalette() {
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder="Type a command or search... (Ctrl+K)" />
+      <CommandInput placeholder="Type a command or search... (Alt+K)" />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
         

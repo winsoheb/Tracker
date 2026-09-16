@@ -11,29 +11,20 @@ async function getUserId() {
   return user.id
 }
 
-export async function getActiveTimer() {
+export async function getActiveTimers() {
   const userId = await getUserId()
-  return await prisma.runningTimer.findUnique({
+  return await prisma.runningTimer.findMany({
     where: { userId },
     include: {
       category: true,
       project: true,
-    }
+    },
+    orderBy: { startedAt: 'asc' }
   })
 }
 
 export async function startTimer(data: { title: string, categoryId?: string | null, projectId?: string | null, description?: string }) {
   const userId = await getUserId()
-
-  // Ensure only one active timer
-  const existingTimer = await prisma.runningTimer.findUnique({
-    where: { userId }
-  })
-
-  if (existingTimer) {
-    // The spec allows auto-stopping the existing one
-    await stopTimer()
-  }
 
   const timer = await prisma.runningTimer.create({
     data: {
@@ -51,11 +42,11 @@ export async function startTimer(data: { title: string, categoryId?: string | nu
   return timer
 }
 
-export async function pauseTimer() {
+export async function pauseTimer(timerId: string) {
   const userId = await getUserId()
   
   const timer = await prisma.runningTimer.findUnique({
-    where: { userId }
+    where: { id: timerId, userId }
   })
 
   if (!timer || timer.pausedAt) return timer
@@ -64,7 +55,7 @@ export async function pauseTimer() {
   const sessionDuration = Math.floor((now.getTime() - timer.startedAt.getTime()) / 1000)
   
   const updatedTimer = await prisma.runningTimer.update({
-    where: { userId },
+    where: { id: timerId, userId },
     data: {
       pausedAt: now,
       accumulatedDuration: timer.accumulatedDuration + sessionDuration
@@ -75,17 +66,17 @@ export async function pauseTimer() {
   return updatedTimer
 }
 
-export async function resumeTimer() {
+export async function resumeTimer(timerId: string) {
   const userId = await getUserId()
 
   const timer = await prisma.runningTimer.findUnique({
-    where: { userId }
+    where: { id: timerId, userId }
   })
 
   if (!timer || !timer.pausedAt) return timer
 
   const updatedTimer = await prisma.runningTimer.update({
-    where: { userId },
+    where: { id: timerId, userId },
     data: {
       startedAt: new Date(),
       pausedAt: null
@@ -96,11 +87,11 @@ export async function resumeTimer() {
   return updatedTimer
 }
 
-export async function stopTimer() {
+export async function stopTimer(timerId: string) {
   const userId = await getUserId()
 
   const timer = await prisma.runningTimer.findUnique({
-    where: { userId }
+    where: { id: timerId, userId }
   })
 
   if (!timer) return null
@@ -149,11 +140,11 @@ export async function stopTimer() {
   return result
 }
 
-export async function cancelTimer() {
+export async function cancelTimer(timerId: string) {
   const userId = await getUserId()
   
   await prisma.runningTimer.delete({
-    where: { userId }
+    where: { id: timerId, userId }
   }).catch(() => {}) // Ignore if doesn't exist
 
   revalidatePath("/")
