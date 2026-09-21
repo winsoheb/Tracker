@@ -1,6 +1,8 @@
 import { getTeamWorkload } from "@/lib/actions/manager"
-import { TeamWorkloadWidget } from "@/components/dashboard/team-workload-widget"
-import { PlannedVsActualChart } from "@/components/dashboard/planned-vs-actual-chart"
+import dynamic from "next/dynamic"
+
+const TeamWorkloadWidget = dynamic(() => import("@/components/dashboard/team-workload-widget").then(mod => mod.TeamWorkloadWidget), { loading: () => <div className="h-[300px] w-full bg-white/5 animate-pulse rounded-3xl" /> })
+const PlannedVsActualChart = dynamic(() => import("@/components/dashboard/planned-vs-actual-chart").then(mod => mod.PlannedVsActualChart), { loading: () => <div className="h-[300px] w-full bg-white/5 animate-pulse rounded-3xl" /> })
 
 export const metadata = {
   title: "Manager Dashboard | Office Time Tracker",

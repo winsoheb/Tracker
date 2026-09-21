@@ -4,7 +4,9 @@ import { ReportsTable } from "@/components/reports/data-table"
 import { ReportFilters } from "@/components/reports/report-filters"
 import { formatDuration } from "@/lib/utils"
 import { AddManualEntryDialog } from "@/components/reports/add-entry-dialog"
-import { EfficiencyChart } from "@/components/reports/efficiency-chart"
+import nextDynamic from "next/dynamic"
+
+const EfficiencyChart = nextDynamic(() => import("@/components/reports/efficiency-chart").then(mod => mod.EfficiencyChart), { loading: () => <div className="h-[300px] w-full bg-white/5 animate-pulse rounded-3xl" /> })
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0

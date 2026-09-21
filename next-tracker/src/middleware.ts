@@ -19,8 +19,13 @@ export default auth((req) => {
     return
   }
 
-  // For all other routes, require authentication
+  const isOnApiRoute = req.nextUrl.pathname.startsWith('/api')
+
+  // For all other routes (and non-auth API routes), require authentication
   if (!isLoggedIn) {
+    if (isOnApiRoute) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 })
+    }
     return Response.redirect(new URL('/login', req.nextUrl))
   }
 

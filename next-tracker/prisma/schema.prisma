@@ -265,6 +265,8 @@ model Task {
   @@index([userId, startAt])
   @@index([status])
   @@index([projectId])
+  @@index([recurrenceId])
+  @@index([isBlueprint])
 }
 
 model TaskRecurrence {

@@ -248,6 +248,7 @@ export async function getTeamProjectStats(currentUser: any, filter: ReportFilter
       id: "none",
       name: "No Project",
       status: "ACTIVE",
+      duration: noProjectDuration,
       durationMinutes: Math.round(noProjectDuration / 60)
     })
   }
