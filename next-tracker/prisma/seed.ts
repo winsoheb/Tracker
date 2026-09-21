@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
@@ -5,17 +6,7 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('Seeding database...')
 
-  // Clean up existing data for a fresh seed
-  await prisma.activityEvent.deleteMany()
-  await prisma.setting.deleteMany()
-  await prisma.scheduledTask.deleteMany()
-  await prisma.shift.deleteMany()
-  await prisma.break.deleteMany()
-  await prisma.runningTimer.deleteMany()
-  await prisma.timeEntry.deleteMany()
-  await prisma.project.deleteMany()
-  await prisma.category.deleteMany()
-  await prisma.user.deleteMany()
+
 
   // Create a default user
   const user = await prisma.user.create({

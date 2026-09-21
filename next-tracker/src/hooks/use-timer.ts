@@ -41,6 +41,13 @@ export function useTimer(initialTimers: RunningTimerData[] = []) {
     } else {
       setIsLoading(false)
     }
+
+    const handleTimerUpdated = () => {
+      fetchTimers()
+    }
+    
+    window.addEventListener("timer_updated", handleTimerUpdated)
+    return () => window.removeEventListener("timer_updated", handleTimerUpdated)
   }, [initialTimers, fetchTimers])
 
   // Removed central ticking effect to improve performance.
@@ -50,7 +57,6 @@ export function useTimer(initialTimers: RunningTimerData[] = []) {
     setIsPending(true)
     try {
       const newTimer = await startTimer(data)
-      // @ts-expect-error
       setTimers(prev => [...prev, newTimer])
     } catch (e: any) {
       console.error("Failed to start timer:", e)

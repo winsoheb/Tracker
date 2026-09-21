@@ -1,77 +1,60 @@
-# Office Time Tracker
+# Office Time Tracker v1.0
 
-A personal Flask web app to log your office work, track time, and see where your
-hours go. Runs locally on your machine at **http://127.0.0.1:7771**.
+A premium, futuristic productivity application built to help you log your office work, track time, and visualize where your hours go.
 
-## Features
+## 🚀 Features (Version 1.0)
 
-- **Two ways to log time** — live start/stop timers, or manual entry (by duration
-  or by start/end times) for logging after the fact.
-- **Multiple timers at once** — start a timer for each task you're juggling; every
-  running task shows in “Running now” with its own live clock. Stop any one when
-  that task is done to record its time, while the others keep running.
-- **Categories** — pick from a preset list or type a new one on the fly; new ones
-  are saved automatically. Manage the list in Settings.
-- **Shift & break** — set your shift length (default 8 hours), start/end times, and
-  a default break; record break minutes per task.
-- **Insights dashboard**:
-  - Time by category (doughnut chart)
-  - Daily / weekly trends (work vs. break)
-  - Shift vs. actual per day, with utilization %
-  - Top tasks that consumed the most time
-  - Range switch: today / this week / this month / last 30 days
-- **Work log** — filter by date range, edit or delete any entry.
-- **Reports** — generate a report for a single day, this week, last 7 days, this
-  month, last 30 days, or a custom From–To range. Preview it on screen (summary,
-  by category, by day, top tasks, all entries) and export to CSV — either the full
-  entry list or a category/day summary.
+- **Live Multi-Timer Dashboard**: Start, pause, and stop multiple tasks concurrently. Timers utilize `framer-motion` for smooth layout animations.
+- **Manual Time Entry**: Forgot to start a timer? Log entries manually specifying duration or start/end times.
+- **Day-by-Day Reports**: Filter your time entries (Today, Last 7 Days, Last 30 Days) and view them grouped by day with daily total calculations.
+- **Data Insights**: Interactive dashboard displaying total time and a time-by-category breakdown.
+- **Focus Mode**: Expand any active timer into a distraction-free, fullscreen "Focus Mode" with a massive clock display.
+- **Global Command Palette**: Navigate the app instantly using the `Alt + K` keyboard shortcut.
+- **Dark/Light Mode**: Full system-aware theming with a sleek glassmorphism design (translucency, glowing gradients, neon accents).
+- **Data Export**: Export any filtered date range of time entries directly to CSV.
 
-All data is stored locally in a `timetracker.db` SQLite file created next to
-`app.py` on first run. Nothing leaves your machine.
+## 🛠️ Technology Stack
 
-## Setup & run
+- **Framework**: Next.js 15 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS + custom glassmorphism utilities (`index.css`)
+- **Animations**: Framer Motion
+- **Database**: SQLite (via Prisma ORM)
+- **Deployment**: Docker + GitHub Actions (CI/CD to Linux Server)
 
-You already have a `venv` in this folder. From a terminal in the project folder:
+## 🐳 Deployment (Docker & CI/CD)
 
-**Windows (PowerShell):**
-```powershell
-.\venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-python app.py
+The application is fully containerized and includes an automated CI/CD pipeline.
+
+### Prerequisites for Server deployment:
+1. Docker and Docker Compose installed.
+2. A GitHub Personal Access Token (or SSH Key) configured in GitHub Secrets.
+
+### Automated Deployment:
+Any code pushed to the `main` branch automatically triggers `.github/workflows/deploy.yml`. 
+1. **Build & Push**: The Docker image is built using Next.js `standalone` mode and pushed to `ghcr.io`.
+2. **Deploy via SSH**: The action SSHs into your server, pulls the new image, and restarts the container using `docker-compose.yml`. 
+3. **Data Persistence**: The SQLite `dev.db` file is safely stored in a persistent Docker volume (`sqlite_data`).
+
+### Local Load Testing
+A `k6` load testing script is included in `load-tests/basic-load.js`.
+```bash
+k6 run -e TARGET_URL=http://localhost:3000 load-tests/basic-load.js
 ```
 
-**Windows (Command Prompt):**
-```cmd
-venv\Scripts\activate.bat
-pip install -r requirements.txt
-python app.py
-```
+## 💻 Local Development
 
-Then open **http://127.0.0.1:7771** in your browser.
-
-To stop the app, press `Ctrl+C` in the terminal.
-
-## Project structure
-
-```
-app.py                     Flask backend, routes, SQLite schema
-requirements.txt           Python dependencies (Flask)
-templates/
-  base.html                Shared layout + nav
-  index.html               Dashboard: timer, manual entry, today's log
-  entries.html             Work log with date filter + inline edit
-  insights.html            Charts dashboard
-  reports.html             Report builder with date ranges + CSV export
-  settings.html            Shift, break, and category management
-static/
-  css/style.css            Styling
-  js/chart.umd.min.js      Chart.js (bundled, works offline)
-timetracker.db             Your data (created automatically on first run)
-```
-
-## Notes
-
-- The port is set to **7771** in `app.py` (`PORT = 7771`).
-- Chart.js is bundled locally, so charts work without an internet connection.
-- To reset all data, stop the app and delete `timetracker.db`; a fresh one is
-  created on the next run.
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Generate the Prisma Client and migrate the database:
+   ```bash
+   npx prisma generate
+   npx prisma db push
+   ```
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.

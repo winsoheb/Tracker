@@ -19,25 +19,32 @@ export function ReportFilters({ entries }: { entries: any[] }) {
     params.set("range", range)
     
     const today = new Date()
+    const endOfToday = new Date(today)
+    endOfToday.setHours(23,59,59,999)
+
     if (range === "today") {
       const start = new Date(today)
       start.setHours(0,0,0,0)
-      const end = new Date(today)
-      end.setHours(23,59,59,999)
       params.set("start", start.toISOString())
-      params.set("end", end.toISOString())
+      params.set("end", endOfToday.toISOString())
     } else if (range === "7d") {
-      params.set("start", subDays(today, 7).toISOString())
-      params.set("end", today.toISOString())
+      const start = new Date(today)
+      start.setDate(start.getDate() - 6) // 7 days including today
+      start.setHours(0,0,0,0)
+      params.set("start", start.toISOString())
+      params.set("end", endOfToday.toISOString())
     } else if (range === "30d") {
-      params.set("start", subDays(today, 30).toISOString())
-      params.set("end", today.toISOString())
+      const start = new Date(today)
+      start.setDate(start.getDate() - 29)
+      start.setHours(0,0,0,0)
+      params.set("start", start.toISOString())
+      params.set("end", endOfToday.toISOString())
     } else if (range === "this_week") {
       params.set("start", startOfWeek(today).toISOString())
-      params.set("end", today.toISOString())
+      params.set("end", endOfToday.toISOString())
     } else if (range === "this_month") {
       params.set("start", startOfMonth(today).toISOString())
-      params.set("end", today.toISOString())
+      params.set("end", endOfToday.toISOString())
     } else {
       params.delete("start")
       params.delete("end")

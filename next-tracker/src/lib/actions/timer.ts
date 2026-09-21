@@ -2,12 +2,11 @@
 
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { requireAuth } from "@/lib/auth-utils"
 
-// For a single-user local deployment, we'll fetch the first user.
-// In a real multi-user app, this would get the session user.
+// Use session user instead of first user
 async function getUserId() {
-  const user = await prisma.user.findFirst()
-  if (!user) throw new Error("No user found")
+  const user = await requireAuth()
   return user.id
 }
 
@@ -23,7 +22,7 @@ export async function getActiveTimers() {
   })
 }
 
-export async function startTimer(data: { title: string, categoryId?: string | null, projectId?: string | null, description?: string }) {
+export async function startTimer(data: { title: string, categoryId?: string | null, projectId?: string | null, description?: string, taskId?: string | null }) {
   const userId = await getUserId()
 
   const timer = await prisma.runningTimer.create({
@@ -33,6 +32,7 @@ export async function startTimer(data: { title: string, categoryId?: string | nu
       categoryId: data.categoryId || null,
       projectId: data.projectId || null,
       description: data.description || "",
+      taskId: data.taskId || null,
       startedAt: new Date(),
       accumulatedDuration: 0,
     }
@@ -113,6 +113,7 @@ export async function stopTimer(timerId: string) {
         categoryId: timer.categoryId,
         projectId: timer.projectId,
         description: timer.description,
+        taskId: timer.taskId,
         startedAt: timer.createdAt, 
         endedAt: now,
         duration: finalDuration,

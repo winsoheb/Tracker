@@ -3,10 +3,10 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { logActivity } from "@/lib/actions/activity"
+import { requireAuth } from "@/lib/auth-utils"
 
 async function getUserId() {
-  const user = await prisma.user.findFirst()
-  if (!user) throw new Error("No user found")
+  const user = await requireAuth()
   return user.id
 }
 

@@ -4,19 +4,23 @@ import { WeeklyChart } from "@/components/dashboard/weekly-chart"
 import { DailyGoal } from "@/components/dashboard/daily-goal"
 import { RecentActivity } from "@/components/dashboard/recent-activity"
 
+import { requireAuth } from "@/lib/auth-utils"
+
 // Opt out of caching since this is a real-time dashboard
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
 export default async function DashboardPage() {
   const data = await getDashboardData()
+  const user = await requireAuth()
+  const firstName = user.name?.split(' ')[0] || "User"
 
   return (
     <div className="flex flex-col gap-8 w-full max-w-6xl mx-auto py-8">
       
       <header className="mb-4 flex flex-col items-center text-center">
         <h1 className="text-3xl font-light tracking-tight mb-2">
-          Good morning, <span className="font-semibold text-primary neon-text">Admin</span>.
+          Good morning, <span className="font-semibold text-primary neon-text">{firstName}</span>.
         </h1>
         <p className="text-muted-foreground tracking-wide">
           Ready to focus? Let's track some deep work.

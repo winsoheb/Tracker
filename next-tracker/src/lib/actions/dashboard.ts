@@ -2,10 +2,10 @@
 
 import { prisma } from "@/lib/prisma"
 import { startOfDay, endOfDay, subDays } from "date-fns"
+import { requireAuth } from "@/lib/auth-utils"
 
 async function getUserId() {
-  const user = await prisma.user.findFirst()
-  if (!user) throw new Error("No user found")
+  const user = await requireAuth()
   return user.id
 }
 

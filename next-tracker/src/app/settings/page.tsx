@@ -1,11 +1,14 @@
 import React from "react"
 import { getCategories, getProjects, getSettings } from "@/lib/actions/settings"
 import { SettingsTabs } from "@/components/settings/settings-tabs"
+import { requireManager } from "@/lib/auth-utils"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
 export default async function SettingsPage() {
+  await requireManager()
+  
   const [categories, projects, settings] = await Promise.all([
     getCategories(),
     getProjects(),

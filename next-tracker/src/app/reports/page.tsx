@@ -4,11 +4,12 @@ import { ReportsTable } from "@/components/reports/data-table"
 import { ReportFilters } from "@/components/reports/report-filters"
 import { formatDuration } from "@/lib/utils"
 import { AddManualEntryDialog } from "@/components/reports/add-entry-dialog"
+import { EfficiencyChart } from "@/components/reports/efficiency-chart"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
-export default async function ReportsPage(props: { searchParams?: { start?: string, end?: string } }) {
+export default async function ReportsPage(props: { searchParams?: { start?: string, end?: string, range?: string } }) {
   const searchParams = props.searchParams ? await Promise.resolve(props.searchParams) : {};
   
   const range = searchParams.range || "today"
@@ -56,8 +57,13 @@ export default async function ReportsPage(props: { searchParams?: { start?: stri
           </div>
         </div>
 
+        {/* Efficiency Chart */}
+        <div className="md:col-span-2">
+          <EfficiencyChart data={data.efficiencyData} />
+        </div>
+
         {/* Category Breakdown */}
-        <div className="glass p-6 rounded-2xl md:col-span-2 shadow-xl">
+        <div className="glass p-6 rounded-2xl md:col-span-3 shadow-xl mt-4">
           <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-4">Time by Category</h3>
           <div className="flex gap-4 overflow-x-auto custom-scrollbar pb-2">
             {data.byCategory.length === 0 ? (
