@@ -1,4 +1,4 @@
-# Office Time Tracker v1.0
+# WorkOrbit v1.0
 
 A premium, futuristic productivity application built to help you log your office work, track time, and visualize where your hours go.
 

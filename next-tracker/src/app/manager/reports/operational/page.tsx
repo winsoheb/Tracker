@@ -5,7 +5,7 @@ import { startOfDay, endOfDay, startOfWeek, endOfWeek, subWeeks, format } from "
 import { Activity, ArrowLeft, RefreshCw, UserMinus } from "lucide-react"
 
 export const metadata = {
-  title: "Operational Reports | Office Time Tracker",
+  title: "Operational Reports | WorkOrbit",
 }
 
 export default async function ManagerOperationalPage(props: { searchParams?: { period?: string } }) {

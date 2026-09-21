@@ -5,7 +5,7 @@ import { startOfWeek, endOfWeek, subWeeks, addDays, format } from "date-fns"
 import { CalendarDays, ArrowLeft } from "lucide-react"
 
 export const metadata = {
-  title: "Team Workload Timeline | Office Time Tracker",
+  title: "Team Workload Timeline | WorkOrbit",
 }
 
 export default async function ManagerWorkloadPage(props: { searchParams?: { period?: string } }) {

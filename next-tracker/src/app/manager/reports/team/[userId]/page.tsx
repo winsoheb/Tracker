@@ -6,7 +6,7 @@ import { BarChart3, Clock, CalendarDays, AlertTriangle, CheckCircle2, User } fro
 import { prisma } from "@/lib/prisma"
 
 export const metadata = {
-  title: "Employee Report | Office Time Tracker",
+  title: "Employee Report | WorkOrbit",
 }
 
 function formatHours(minutes: number) {

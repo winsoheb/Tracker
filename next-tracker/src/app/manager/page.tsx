@@ -5,7 +5,7 @@ const TeamWorkloadWidget = dynamic(() => import("@/components/dashboard/team-wor
 const PlannedVsActualChart = dynamic(() => import("@/components/dashboard/planned-vs-actual-chart").then(mod => mod.PlannedVsActualChart), { loading: () => <div className="h-[300px] w-full bg-white/5 animate-pulse rounded-3xl" /> })
 
 export const metadata = {
-  title: "Manager Dashboard | Office Time Tracker",
+  title: "Manager Dashboard | WorkOrbit",
 }
 
 export default async function ManagerDashboardPage() {

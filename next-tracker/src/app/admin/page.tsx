@@ -4,7 +4,7 @@ import { AddUserDialog } from "./add-user-dialog"
 import { ShieldCheck } from "lucide-react"
 
 export const metadata = {
-  title: "Administration | Office Time Tracker",
+  title: "Administration | WorkOrbit",
 }
 
 export default async function AdminPage() {

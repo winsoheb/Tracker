@@ -13,7 +13,7 @@ import { GlobalTimerBanner } from "@/components/layout/global-timer-banner";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "Office Time Tracker",
+  title: "WorkOrbit",
   description: "A premium, futuristic productivity application",
 };
 

@@ -5,7 +5,7 @@ import { startOfWeek, endOfWeek, subWeeks, subDays } from "date-fns"
 import { LineChart, ArrowLeft, TrendingUp, TrendingDown, Minus } from "lucide-react"
 
 export const metadata = {
-  title: "Team Trends | Office Time Tracker",
+  title: "Team Trends | WorkOrbit",
 }
 
 function formatHours(minutes: number) {
