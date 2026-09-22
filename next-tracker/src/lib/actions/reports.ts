@@ -56,7 +56,7 @@ export async function getReports(filter: {
   }, {} as Record<string, number>)
 
   const categories = await prisma.category.findMany({
-    where: { userId, isActive: true },
+    where: { isActive: true },
     orderBy: { name: 'asc' }
   })
 

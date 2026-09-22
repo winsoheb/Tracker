@@ -13,9 +13,8 @@ async function getUserId() {
 // --- CATEGORIES ---
 
 export async function getCategories() {
-  const userId = await getUserId()
+  const userId = await getUserId() // Kept for reference or other uses
   return await prisma.category.findMany({
-    where: { userId },
     orderBy: { createdAt: "desc" }
   })
 }
@@ -36,10 +35,11 @@ export async function createCategory(data: { name: string, color?: string, icon?
 }
 
 export async function deleteCategory(id: string) {
-  const userId = await getUserId()
-  const category = await prisma.category.findUnique({ where: { id, userId } })
+  // Let any authenticated user delete a category, or we could restrict it.
+  // For now, anyone can manage global categories.
+  const category = await prisma.category.findUnique({ where: { id } })
   if (category) {
-    await prisma.category.delete({ where: { id, userId } })
+    await prisma.category.delete({ where: { id } })
     await logActivity("Delete", "Category", id, `Deleted category: ${category.name}`)
   }
   revalidatePath("/settings")
@@ -50,7 +50,6 @@ export async function deleteCategory(id: string) {
 export async function getProjects() {
   const userId = await getUserId()
   return await prisma.project.findMany({
-    where: { userId },
     include: { category: true },
     orderBy: { createdAt: "desc" }
   })
@@ -73,10 +72,9 @@ export async function createProject(data: { name: string, categoryId?: string, d
 }
 
 export async function deleteProject(id: string) {
-  const userId = await getUserId()
-  const project = await prisma.project.findUnique({ where: { id, userId } })
+  const project = await prisma.project.findUnique({ where: { id } })
   if (project) {
-    await prisma.project.delete({ where: { id, userId } })
+    await prisma.project.delete({ where: { id } })
     await logActivity("Delete", "Project", id, `Deleted project: ${project.name}`)
   }
   revalidatePath("/settings")

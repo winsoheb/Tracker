@@ -99,7 +99,7 @@ export async function getDashboardData() {
 
   // Fetch all user categories for the timer dropdown
   const allCategories = await prisma.category.findMany({
-    where: { userId, isActive: true },
+    where: { isActive: true },
     orderBy: { name: 'asc' }
   })
 
