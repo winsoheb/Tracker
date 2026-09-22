@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { updateScheduledTaskStatus } from "@/lib/actions/planner"
 import { User, Clock, AlertCircle } from "lucide-react"
 
 const BUCKETS = [

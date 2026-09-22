@@ -60,8 +60,8 @@ export function ChartsView({ tasks }: { tasks: any[] }) {
           </div>
           {chartData.map((data, index) => (
             <div key={data.name} className="flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border-l-4" style={{ borderColor: COLORS[index % COLORS.length] }}>
-              <span className="capitalize">{data.name.toLowerCase()}</span>
-              <span className="font-semibold">{data.value}</span>
+              <span className="capitalize">{String(data.name).toLowerCase()}</span>
+              <span className="font-semibold">{String(data.value)}</span>
             </div>
           ))}
         </div>
