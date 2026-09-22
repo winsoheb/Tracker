@@ -31,6 +31,7 @@ const items = [
   { title: "Planner", url: "/planner", icon: CalendarDays },
   { title: "Activity", url: "/activity", icon: ListTodo },
   { title: "Reports", url: "/reports", icon: BarChart3 },
+  { title: "Profile", url: "/profile", icon: UserCircle },
   { title: "Settings", url: "/settings", icon: Settings },
 ]
 
