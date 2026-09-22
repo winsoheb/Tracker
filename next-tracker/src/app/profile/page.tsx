@@ -30,9 +30,9 @@ export default async function ProfilePage() {
             <div className="absolute bottom-2 right-2 w-4 h-4 bg-green-500 border-2 border-white dark:border-slate-800 rounded-full shadow-sm" />
           </div>
 
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{user.name}</h2>
-            <p className="text-muted-foreground mt-1">{user.email}</p>
+          <div className="w-full px-4">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white truncate">{user.name}</h2>
+            <p className="text-muted-foreground mt-1 truncate" title={user.email}>{user.email}</p>
           </div>
 
           <span className="bg-secondary text-secondary-foreground px-4 py-1 text-sm rounded-full capitalize font-semibold inline-flex items-center">
