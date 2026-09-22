@@ -3,8 +3,7 @@ import { Mail, Briefcase, Clock, ShieldCheck, User as UserIcon } from "lucide-re
 import { SignOutButton } from "@/components/auth/signout-button"
 
 export default async function ProfilePage() {
-  const session = await requireAuth()
-  const { user } = session
+  const user = await requireAuth() as any
 
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">

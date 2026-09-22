@@ -10,7 +10,8 @@ import {
   BarChart3,
   ListTodo,
   ShieldCheck,
-  LogOut
+  LogOut,
+  UserCircle
 } from "lucide-react"
 
 import {
