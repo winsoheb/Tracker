@@ -8,7 +8,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 
 export function GridView({ tasks }: { tasks: any[] }) {
@@ -30,14 +29,14 @@ export function GridView({ tasks }: { tasks: any[] }) {
             <TableRow key={task.id}>
               <TableCell className="font-medium">{task.title}</TableCell>
               <TableCell>
-                <Badge variant={task.status === "COMPLETED" ? "default" : "secondary"}>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${task.status === "COMPLETED" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}`}>
                   {task.status.replace("_", " ")}
-                </Badge>
+                </span>
               </TableCell>
               <TableCell>
-                <Badge variant={task.priority === "HIGH" || task.priority === "URGENT" ? "destructive" : "outline"}>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${task.priority === "HIGH" || task.priority === "URGENT" ? "bg-red-500 text-white" : "border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200"}`}>
                   {task.priority}
-                </Badge>
+                </span>
               </TableCell>
               <TableCell className="text-muted-foreground text-sm">
                 {task.startAt ? format(new Date(task.startAt), "MMM d, yyyy h:mm a") : "-"}

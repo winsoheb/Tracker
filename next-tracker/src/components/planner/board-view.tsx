@@ -1,9 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { updateScheduledTaskStatus } from "@/lib/actions/planner"
-import { Badge } from "@/components/ui/badge"
-import { Card } from "@/components/ui/card"
 import { User, Clock, AlertCircle } from "lucide-react"
 
 const BUCKETS = [
@@ -75,11 +72,11 @@ export function BoardView({ tasks }: { tasks: any[] }) {
 
             <div className="flex flex-col gap-3 min-h-[200px] bg-slate-100/50 dark:bg-slate-800/30 rounded-xl p-2">
               {bucketTasks.map(task => (
-                <Card 
+                <div 
                   key={task.id}
                   draggable
                   onDragStart={(e) => handleDragStart(e, task.id)}
-                  className={`p-4 cursor-grab active:cursor-grabbing border-l-4 hover:shadow-md transition-shadow ${
+                  className={`bg-white dark:bg-slate-900 rounded-xl p-4 cursor-grab active:cursor-grabbing border-l-4 hover:shadow-md transition-shadow ${
                     task.priority === "HIGH" || task.priority === "URGENT" ? "border-l-red-500" : "border-l-primary"
                   }`}
                 >
@@ -98,9 +95,9 @@ export function BoardView({ tasks }: { tasks: any[] }) {
                       <div className="flex items-center justify-between pt-2">
                         <div className="flex items-center gap-2">
                           {task.estimatedMinutes && (
-                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 rounded-sm font-normal">
+                            <span className="bg-secondary text-secondary-foreground text-[10px] px-1.5 py-0.5 rounded-sm font-normal inline-flex items-center">
                               {task.estimatedMinutes}m
-                            </Badge>
+                            </span>
                           )}
                           {task.status === "BLOCKED" && (
                             <AlertCircle className="w-4 h-4 text-red-500" />
@@ -114,7 +111,7 @@ export function BoardView({ tasks }: { tasks: any[] }) {
                       </div>
                     </div>
                   </div>
-                </Card>
+                </div>
               ))}
               
               {bucketTasks.length === 0 && (

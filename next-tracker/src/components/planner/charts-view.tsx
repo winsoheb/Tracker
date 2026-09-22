@@ -1,6 +1,5 @@
 "use client"
 
-import { Card } from "@/components/ui/card"
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts"
 
 const COLORS = ["#0ea5e9", "#f59e0b", "#8b5cf6", "#ef4444", "#22c55e", "#94a3b8"]
@@ -21,7 +20,7 @@ export function ChartsView({ tasks }: { tasks: any[] }) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <Card className="p-6">
+      <div className="p-6 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <h3 className="text-lg font-semibold mb-6">Status Overview</h3>
         {tasks.length > 0 ? (
           <div className="h-[300px] w-full">
@@ -50,9 +49,9 @@ export function ChartsView({ tasks }: { tasks: any[] }) {
             No tasks to display
           </div>
         )}
-      </Card>
+      </div>
 
-      <Card className="p-6">
+      <div className="p-6 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <h3 className="text-lg font-semibold mb-6">Task Summary</h3>
         <div className="space-y-4">
           <div className="flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
@@ -66,7 +65,7 @@ export function ChartsView({ tasks }: { tasks: any[] }) {
             </div>
           ))}
         </div>
-      </Card>
+      </div>
     </div>
   )
 }
