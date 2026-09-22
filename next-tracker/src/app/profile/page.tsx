@@ -1,6 +1,4 @@
 import { requireAuth } from "@/lib/auth-utils"
-import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Mail, Briefcase, Clock, ShieldCheck, User as UserIcon } from "lucide-react"
 import { SignOutButton } from "@/components/auth/signout-button"
 
@@ -20,7 +18,7 @@ export default async function ProfilePage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left Column: Avatar & Summary */}
-        <Card className="col-span-1 p-8 flex flex-col items-center text-center space-y-6 border-none shadow-lg bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800 rounded-3xl">
+        <div className="col-span-1 p-8 flex flex-col items-center text-center space-y-6 border-none shadow-lg bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800 rounded-3xl">
           <div className="relative">
             <div className="w-32 h-32 rounded-full bg-primary/10 flex items-center justify-center border-4 border-white dark:border-slate-800 shadow-inner">
               {user.avatar ? (
@@ -38,13 +36,13 @@ export default async function ProfilePage() {
             <p className="text-muted-foreground mt-1">{user.email}</p>
           </div>
 
-          <Badge variant="secondary" className="px-4 py-1 text-sm rounded-full capitalize">
+          <span className="bg-secondary text-secondary-foreground px-4 py-1 text-sm rounded-full capitalize font-semibold inline-flex items-center">
             {user.role.toLowerCase()}
-          </Badge>
-        </Card>
+          </span>
+        </div>
 
         {/* Right Column: Detailed Info */}
-        <Card className="col-span-1 md:col-span-2 p-8 border-none shadow-lg bg-white dark:bg-slate-900 rounded-3xl space-y-8">
+        <div className="col-span-1 md:col-span-2 p-8 border-none shadow-lg bg-white dark:bg-slate-900 rounded-3xl space-y-8">
           <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-primary" /> Account Details
           </h3>
@@ -74,7 +72,7 @@ export default async function ProfilePage() {
               </div>
             </div>
           </div>
-        </Card>
+        </div>
       </div>
     </div>
   )
