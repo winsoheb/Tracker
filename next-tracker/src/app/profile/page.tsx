@@ -1,9 +1,8 @@
 import { requireAuth } from "@/lib/auth-utils"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Mail, Briefcase, Clock, ShieldCheck, User as UserIcon, LogOut } from "lucide-react"
-import { signOut } from "@/auth"
-import { Button } from "@/components/ui/button"
+import { Mail, Briefcase, Clock, ShieldCheck, User as UserIcon } from "lucide-react"
+import { SignOutButton } from "@/components/auth/signout-button"
 
 export default async function ProfilePage() {
   const session = await requireAuth()
@@ -16,14 +15,7 @@ export default async function ProfilePage() {
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">My Profile</h1>
           <p className="text-muted-foreground mt-2">Manage your account details and view your system role.</p>
         </div>
-        <form action={async () => {
-          "use server"
-          await signOut()
-        }}>
-          <Button variant="outline" type="submit" className="gap-2">
-            <LogOut className="w-4 h-4" /> Sign Out
-          </Button>
-        </form>
+        <SignOutButton />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
