@@ -2,9 +2,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  serverActions: {
-    allowedOrigins: ["192.168.1.176:8443", "192.168.1.176", "localhost:8443", "localhost:3000"]
-  },
   async headers() {
     return [
       {
