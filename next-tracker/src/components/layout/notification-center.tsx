@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
 import { Bell } from "lucide-react"
 import { getNotifications, NotificationAlert } from "@/lib/actions/notifications"
 import {
@@ -12,11 +13,13 @@ import { Button } from "@/components/ui/button"
 import { formatDistanceToNow } from "date-fns"
 
 export function NotificationCenter() {
+  const { data: session } = useSession()
   const [notifications, setNotifications] = useState<NotificationAlert[]>([])
   const [isOpen, setIsOpen] = useState(false)
 
   // Fetch notifications on mount and when opened
   const fetchAlerts = async () => {
+    if (!session) return // Do not fetch if not logged in
     try {
       const data = await getNotifications()
       setNotifications(data)
@@ -26,11 +29,12 @@ export function NotificationCenter() {
   }
 
   useEffect(() => {
+    if (!session) return
     fetchAlerts()
     // Poll every 5 minutes
     const interval = setInterval(fetchAlerts, 5 * 60 * 1000)
     return () => clearInterval(interval)
-  }, [])
+  }, [session])
 
   const unreadCount = notifications.length
 
