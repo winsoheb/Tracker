@@ -79,7 +79,7 @@ export async function getScheduledTasks(startDate: Date, endDate: Date, targetUs
             categoryId: blueprint.categoryId,
             projectId: blueprint.projectId,
             priority: blueprint.priority,
-            status: "TODO",
+            status: "UP_NEXT",
             recurrenceId: recurrence.id,
             isBlueprint: false,
             reminders: blueprint.reminders && blueprint.reminders.length > 0 ? {
@@ -175,7 +175,7 @@ export async function createScheduledTask(data: {
       categoryId: data.categoryId,
       projectId: data.projectId,
       priority: data.priority || "MEDIUM",
-      status: "TODO",
+      status: "UP_NEXT",
       recurrenceId,
       isBlueprint,
       originalStartAt: isBlueprint ? null : data.startAt, // Non-blueprint tasks have originalStartAt = startAt unless generated lazily
@@ -257,7 +257,7 @@ export async function updateScheduledTaskTime(
         categoryId: task.categoryId,
         projectId: task.projectId,
         priority: task.priority,
-        status: "TODO",
+        status: "UP_NEXT",
         recurrenceId: newRec.id,
         isBlueprint: true
       }

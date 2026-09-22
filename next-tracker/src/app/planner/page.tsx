@@ -3,6 +3,9 @@ import { getScheduledTasks } from "@/lib/actions/planner"
 import { Timeline } from "@/components/planner/timeline"
 import { WeeklyView } from "@/components/planner/weekly-view"
 import { MonthlyView } from "@/components/planner/monthly-view"
+import { BoardView } from "@/components/planner/board-view"
+import { GridView } from "@/components/planner/grid-view"
+import { ChartsView } from "@/components/planner/charts-view"
 import { AddTaskDialog } from "@/components/planner/add-task-dialog"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Calendar, CalendarDays, LayoutGrid } from "lucide-react"
@@ -32,9 +35,14 @@ export default async function PlannerPage(props: { searchParams?: { date?: strin
   if (view === "weekly") {
     startDate = startOfWeek(selectedDate, { weekStartsOn: 1 })
     endDate = endOfWeek(selectedDate, { weekStartsOn: 1 })
-  } else if (view === "monthly") {
+  } else if (view === "monthly" || view === "calendar") {
     startDate = subDays(startOfMonth(selectedDate), 7) // Pad for grid
     endDate = addDays(endOfMonth(selectedDate), 7)
+  } else if (view === "board" || view === "grid" || view === "charts") {
+    // For Kanban board and Grid, fetch a wider range (e.g., past 30 days and future 90 days)
+    // Or just all non-completed tasks (we'll filter in the component)
+    startDate = subDays(new Date(), 30)
+    endDate = addDays(new Date(), 90)
   }
 
   let tasks = []
@@ -114,15 +122,18 @@ export default async function PlannerPage(props: { searchParams?: { date?: strin
         </div>
         
         <div className="flex flex-col sm:flex-row items-center gap-4">
-          <div className="flex items-center glass rounded-xl p-1 bg-white/5">
-            <a href={`/planner?date=${selectedDate.toISOString()}&view=daily${searchParams.user ? `&user=${searchParams.user}` : ''}`} className={`p-2 rounded-lg transition-colors ${view === 'daily' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:bg-white/10'}`}>
-              <CalendarDays className="w-4 h-4" />
+          <div className="flex items-center glass rounded-xl p-1 bg-white/5 border border-white/10 shadow-inner">
+            <a href={`/planner?date=${selectedDate.toISOString()}&view=grid${searchParams.user ? `&user=${searchParams.user}` : ''}`} className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-all ${view === 'grid' ? 'bg-white shadow-sm text-slate-900 dark:bg-slate-800 dark:text-white' : 'text-muted-foreground hover:bg-white/10'}`}>
+              Grid
             </a>
-            <a href={`/planner?date=${selectedDate.toISOString()}&view=weekly${searchParams.user ? `&user=${searchParams.user}` : ''}`} className={`p-2 rounded-lg transition-colors ${view === 'weekly' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:bg-white/10'}`}>
-              <LayoutGrid className="w-4 h-4" />
+            <a href={`/planner?date=${selectedDate.toISOString()}&view=board${searchParams.user ? `&user=${searchParams.user}` : ''}`} className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-all ${view === 'board' ? 'bg-white shadow-sm text-slate-900 dark:bg-slate-800 dark:text-white' : 'text-muted-foreground hover:bg-white/10'}`}>
+              Board
             </a>
-            <a href={`/planner?date=${selectedDate.toISOString()}&view=monthly${searchParams.user ? `&user=${searchParams.user}` : ''}`} className={`p-2 rounded-lg transition-colors ${view === 'monthly' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:bg-white/10'}`}>
-              <Calendar className="w-4 h-4" />
+            <a href={`/planner?date=${selectedDate.toISOString()}&view=calendar${searchParams.user ? `&user=${searchParams.user}` : ''}`} className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-all ${view === 'calendar' || view === 'daily' || view === 'weekly' || view === 'monthly' ? 'bg-white shadow-sm text-slate-900 dark:bg-slate-800 dark:text-white' : 'text-muted-foreground hover:bg-white/10'}`}>
+              Calendar
+            </a>
+            <a href={`/planner?date=${selectedDate.toISOString()}&view=charts${searchParams.user ? `&user=${searchParams.user}` : ''}`} className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-all ${view === 'charts' ? 'bg-white shadow-sm text-slate-900 dark:bg-slate-800 dark:text-white' : 'text-muted-foreground hover:bg-white/10'}`}>
+              Charts
             </a>
           </div>
 
@@ -155,7 +166,11 @@ export default async function PlannerPage(props: { searchParams?: { date?: strin
       <div className="flex-1">
         {view === "daily" && <Timeline key={`daily-${targetUserId}-${selectedDate.toISOString()}`} date={selectedDate} initialTasks={tasks} />}
         {view === "weekly" && <WeeklyView key={`weekly-${targetUserId}-${selectedDate.toISOString()}`} date={selectedDate} initialTasks={tasks} />}
-        {view === "monthly" && <MonthlyView key={`monthly-${targetUserId}-${selectedDate.toISOString()}`} date={selectedDate} initialTasks={tasks} />}
+        {(view === "monthly" || view === "calendar") && <MonthlyView key={`monthly-${targetUserId}-${selectedDate.toISOString()}`} date={selectedDate} initialTasks={tasks} />}
+        
+        {view === "board" && <BoardView key={`board-${targetUserId}`} tasks={tasks} />}
+        {view === "grid" && <GridView key={`grid-${targetUserId}`} tasks={tasks} />}
+        {view === "charts" && <ChartsView key={`charts-${targetUserId}`} tasks={tasks} />}
       </div>
     </div>
   )
