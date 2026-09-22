@@ -51,8 +51,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async signIn({ user, account, profile }) {
       if (account?.provider === "azure-ad") {
-        const email = profile?.email || user.email
-        if (!email) return false
+        // Log the profile to debug what Microsoft returns
+        console.log("Azure AD Profile:", profile);
+        
+        // Azure AD often puts the email in preferred_username or upn
+        const email = profile?.email || (profile as any)?.preferred_username || (profile as any)?.upn || user.email;
+        
+        if (!email) {
+          console.error("SSO Login Failed: No email address found in Azure AD profile.");
+          return false;
+        }
 
         const existingUser = await prisma.user.findUnique({
           where: { email }
