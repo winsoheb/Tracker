@@ -160,7 +160,7 @@ export function TeamReportView({ data, month, year, workingDays }: any) {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value: number) => `${value.toFixed(1)} hrs`} />
+                    <Tooltip formatter={(value: any) => `${Number(value).toFixed(1)} hrs`} />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
