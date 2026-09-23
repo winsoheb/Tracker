@@ -128,3 +128,82 @@ export async function getReports(filter: {
       .sort((a, b) => b.duration - a.duration)
   }
 }
+
+export async function getTeamReports(month: number, year: number, workingDays: number) {
+  const currentUser = await requireAuth()
+  if (currentUser.role !== "MANAGER" && currentUser.role !== "ADMIN") {
+    throw new Error("Forbidden")
+  }
+
+  const startDate = new Date(year, month - 1, 1)
+  const endDate = new Date(year, month, 0, 23, 59, 59, 999)
+
+  const users = await prisma.user.findMany({
+    select: { id: true, name: true, role: true }
+  })
+
+  const entries = await prisma.timeEntry.findMany({
+    where: { startedAt: { gte: startDate, lte: endDate } },
+    include: { category: true, user: true }
+  })
+
+  const tasks = await prisma.task.findMany({
+    where: { 
+      startAt: { gte: startDate, lte: endDate },
+      isBlueprint: false
+    },
+    include: { user: true, project: true }
+  })
+
+  const totalSeconds = entries.reduce((acc, e) => acc + e.duration, 0)
+  const totalHours = totalSeconds / 3600
+
+  const avgHoursPerPersonPerDay = (totalHours / Math.max(users.length, 1)) / Math.max(workingDays, 1)
+  const standardHoursPerDay = 8
+  const teamUtilizationPercent = avgHoursPerPersonPerDay / standardHoursPerDay
+
+  // Hours by Employee
+  const employeeStats = users.map(u => {
+    const userEntries = entries.filter(e => e.userId === u.id)
+    const userTasks = tasks.filter(t => t.userId === u.id)
+    const uTotalSeconds = userEntries.reduce((acc, e) => acc + e.duration, 0)
+    const uTotalHours = uTotalSeconds / 3600
+    const uAvgHrsDay = uTotalHours / Math.max(workingDays, 1)
+    const uUtilization = uAvgHrsDay / standardHoursPerDay
+    
+    return {
+      id: u.id,
+      name: u.name,
+      role: u.role,
+      totalHours: uTotalHours,
+      tasksLogged: userTasks.length,
+      avgHrsDay: uAvgHrsDay,
+      utilization: uUtilization
+    }
+  })
+
+  // Hours by Category
+  const categoryStatsRaw = entries.reduce((acc, e) => {
+    const cat = e.category?.name || "Uncategorized"
+    acc[cat] = (acc[cat] || 0) + e.duration
+    return acc
+  }, {} as Record<string, number>)
+
+  const categoryStats = Object.entries(categoryStatsRaw).map(([name, duration]) => ({
+    name,
+    totalHours: duration / 3600,
+    percentOfTotal: (duration / 3600) / (totalHours || 1)
+  }))
+
+  return {
+    totalHours,
+    totalTasks: tasks.length,
+    avgHoursPerPersonPerDay,
+    teamUtilizationPercent,
+    employeeStats,
+    categoryStats,
+    tasks,
+    users
+  }
+}
+

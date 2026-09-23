@@ -76,6 +76,12 @@ export function AppSidebar() {
                       <span className="font-medium tracking-wide text-sm">Team Reports</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  <SidebarMenuItem key="ManagerExcelReports">
+                    <SidebarMenuButton tooltip="Utilization & 1:1 Dashboard" className="hover:bg-primary/20 hover:text-white transition-all duration-300 rounded-lg py-5 px-4 text-muted-foreground" onClick={() => window.location.href = "/reports/team"}>
+                      <ListTodo className="w-5 h-5 text-primary" />
+                      <span className="font-medium tracking-wide text-sm">Utilization & 1:1</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </>
               )}
               {items.map((item) => {
