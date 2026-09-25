@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { CalendarIcon, Download } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -11,6 +11,7 @@ import { format, subDays, startOfWeek, startOfMonth } from "date-fns"
 export function ReportFilters({ entries }: { entries: any[] }) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const pathname = usePathname()
   
   const currentRange = searchParams.get("range") || "today"
 
@@ -50,7 +51,7 @@ export function ReportFilters({ entries }: { entries: any[] }) {
       params.delete("end")
     }
     
-    router.push(`/reports?${params.toString()}`)
+    router.push(`${pathname}?${params.toString()}`)
   }
 
   const exportCSV = () => {

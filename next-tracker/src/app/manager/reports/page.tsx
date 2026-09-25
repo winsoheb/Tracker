@@ -3,6 +3,7 @@ import { requireManager } from "@/lib/auth-utils"
 import { getTeamPlannedVsActual, getTeamTaskStats, getTeamWorkloadSummary, getOverdueAndBlockedTasks, getTeamProjectStats } from "@/lib/reports/engine"
 import { startOfWeek, endOfWeek, subWeeks } from "date-fns"
 import { BarChart3, Clock, CalendarDays, AlertTriangle, CheckCircle2, Activity, Download } from "lucide-react"
+import { EmployeeReportSelector } from "@/components/reports/employee-report-selector"
 
 export const metadata = {
   title: "Team Reports | WorkOrbit",
@@ -52,10 +53,12 @@ export default async function ManagerReportsPage(props: { searchParams?: { perio
           </p>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <EmployeeReportSelector members={teamWorkload.map(m => ({ id: m.id, name: m.name }))} />
+          
           <a 
             href={`/api/reports/export?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`} 
-            className="px-4 py-2 rounded-lg text-sm bg-white/5 hover:bg-white/10 transition-colors border border-white/10 flex items-center gap-2 mr-2"
+            className="px-4 py-2 rounded-lg text-sm bg-white/5 hover:bg-white/10 transition-colors border border-white/10 flex items-center gap-2"
             download
           >
             <Download className="w-4 h-4" /> Export
