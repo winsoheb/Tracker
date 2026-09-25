@@ -40,6 +40,12 @@ export function AppSidebar() {
   const { data: session } = useSession()
   const isManager = session?.user?.role === "MANAGER" || session?.user?.role === "ADMIN"
   const isAdmin = session?.user?.role === "ADMIN"
+  const [isLoggingOut, setIsLoggingOut] = React.useState(false)
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    await signOut({ callbackUrl: "/login" })
+  }
 
   return (
     <Sidebar className="border-r border-white/5 bg-background/40 backdrop-blur-3xl">
@@ -101,11 +107,18 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="p-4">
         <button 
-          onClick={() => signOut({ callbackUrl: "/login" })}
-          className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all font-medium text-sm border border-red-500/20"
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+          className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all font-medium text-sm border border-red-500/20 disabled:opacity-50"
         >
-          <LogOut className="w-4 h-4" />
-          Log out
+          {isLoggingOut ? (
+            <span className="animate-pulse">Logging out...</span>
+          ) : (
+            <>
+              <LogOut className="w-4 h-4" />
+              Log out
+            </>
+          )}
         </button>
       </SidebarFooter>
     </Sidebar>
