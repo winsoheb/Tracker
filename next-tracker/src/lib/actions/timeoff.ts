@@ -1,14 +1,13 @@
 "use server"
 
-import { db } from "@/lib/db"
+import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
-import { z } from "zod"
 
 export async function getUserTimeOffs(userId: string, month: number, year: number) {
   const startDate = new Date(year, month - 1, 1)
   const endDate = new Date(year, month, 0)
   
-  return await db.timeOff.findMany({
+  return await prisma.timeOff.findMany({
     where: {
       userId,
       date: {
@@ -22,7 +21,7 @@ export async function getUserTimeOffs(userId: string, month: number, year: numbe
 
 export async function addTimeOff(data: { userId: string, date: Date, type: string, reason?: string }) {
   try {
-    const existing = await db.timeOff.findFirst({
+    const existing = await prisma.timeOff.findFirst({
       where: {
         userId: data.userId,
         date: data.date
@@ -30,7 +29,7 @@ export async function addTimeOff(data: { userId: string, date: Date, type: strin
     })
 
     if (existing) {
-      await db.timeOff.update({
+      await prisma.timeOff.update({
         where: { id: existing.id },
         data: {
           type: data.type,
@@ -38,7 +37,7 @@ export async function addTimeOff(data: { userId: string, date: Date, type: strin
         }
       })
     } else {
-      await db.timeOff.create({
+      await prisma.timeOff.create({
         data: {
           userId: data.userId,
           date: data.date,
@@ -60,7 +59,7 @@ export async function addTimeOff(data: { userId: string, date: Date, type: strin
 
 export async function deleteTimeOff(id: string) {
   try {
-    await db.timeOff.delete({ where: { id } })
+    await prisma.timeOff.delete({ where: { id } })
     revalidatePath("/profile")
     revalidatePath("/reports/team")
     return { success: true }
