@@ -15,14 +15,13 @@ import { format, startOfWeek, isSameWeek } from "date-fns"
 
 const COLORS = ["#0ea5e9", "#f59e0b", "#8b5cf6", "#ef4444", "#22c55e", "#94a3b8"]
 
-export function TeamReportView({ data, month, year, workingDays }: any) {
+export function TeamReportView({ data, month, year }: any) {
   const router = useRouter()
   const [m, setM] = useState(month)
   const [y, setY] = useState(year)
-  const [wDays, setWDays] = useState(workingDays)
 
   const handleFilter = () => {
-    router.push(`/reports/team?month=${m}&year=${y}&days=${wDays}`)
+    router.push(`/reports/team?month=${m}&year=${y}`)
   }
 
   // 1:1 Weekly Log grouping
@@ -69,15 +68,6 @@ export function TeamReportView({ data, month, year, workingDays }: any) {
             className="h-9 px-3 py-1 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-sm w-24"
           />
         </div>
-        <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-medium text-slate-500">Working Days</label>
-          <input 
-            type="number" 
-            value={wDays} 
-            onChange={(e) => setWDays(parseInt(e.target.value))}
-            className="h-9 px-3 py-1 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-sm w-24"
-          />
-        </div>
         <button 
           onClick={handleFilter}
           className="h-9 px-4 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
@@ -117,6 +107,8 @@ export function TeamReportView({ data, month, year, workingDays }: any) {
               <TableRow>
                 <TableHead>Employee</TableHead>
                 <TableHead>Role</TableHead>
+                <TableHead className="text-right">Work Days</TableHead>
+                <TableHead className="text-right">Days Off</TableHead>
                 <TableHead className="text-right">Total Hrs</TableHead>
                 <TableHead className="text-right">Avg Hrs/Day</TableHead>
                 <TableHead className="text-right">Utilization %</TableHead>
@@ -127,6 +119,8 @@ export function TeamReportView({ data, month, year, workingDays }: any) {
                 <TableRow key={emp.id}>
                   <TableCell className="font-medium">{emp.name}</TableCell>
                   <TableCell className="text-muted-foreground text-xs">{emp.role}</TableCell>
+                  <TableCell className="text-right">{emp.workingDays}</TableCell>
+                  <TableCell className="text-right">{emp.daysOff > 0 ? <span className="text-red-500">{emp.daysOff}</span> : '-'}</TableCell>
                   <TableCell className="text-right">{emp.totalHours.toFixed(1)}</TableCell>
                   <TableCell className="text-right">{emp.avgHrsDay.toFixed(2)}</TableCell>
                   <TableCell className="text-right font-semibold text-primary">{(emp.utilization * 100).toFixed(1)}%</TableCell>

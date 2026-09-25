@@ -46,6 +46,7 @@ model User {
   settings       Setting?
   activityEvents ActivityEvent[]
   auditLogs      AuditLog[]
+  timeOffs       TimeOff[]
 }
 
 // ==========================================
@@ -344,4 +345,24 @@ model AuditLog {
   timestamp DateTime @default(now())
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// TIME OFF & LEAVES
+// ==========================================
+
+model TimeOff {
+  id        String   @id @default(uuid())
+  userId    String
+  date      DateTime
+  type      String   // FULL_DAY, HALF_DAY, HOLIDAY
+  reason    String?
+  status    String   @default("APPROVED") // PENDING, APPROVED, REJECTED
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
 }

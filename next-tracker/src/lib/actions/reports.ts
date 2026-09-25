@@ -129,7 +129,7 @@ export async function getReports(filter: {
   }
 }
 
-export async function getTeamReports(month: number, year: number, workingDays: number) {
+export async function getTeamReports(month: number, year: number) {
   const currentUser = await requireAuth()
   if (currentUser.role !== "MANAGER" && currentUser.role !== "ADMIN") {
     throw new Error("Forbidden")
@@ -137,6 +137,14 @@ export async function getTeamReports(month: number, year: number, workingDays: n
 
   const startDate = new Date(year, month - 1, 1)
   const endDate = new Date(year, month, 0, 23, 59, 59, 999)
+
+  let totalWeekdays = 0;
+  for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+    const day = d.getDay();
+    if (day !== 0 && day !== 6) {
+      totalWeekdays++;
+    }
+  }
 
   const users = await prisma.user.findMany({
     select: { id: true, name: true, role: true }
@@ -155,21 +163,44 @@ export async function getTeamReports(month: number, year: number, workingDays: n
     include: { user: true, project: true }
   })
 
+  const timeOffs = await prisma.timeOff.findMany({
+    where: {
+      date: { gte: startDate, lte: endDate },
+      status: "APPROVED"
+    }
+  })
+
   const totalSeconds = entries.reduce((acc, e) => acc + e.duration, 0)
   const totalHours = totalSeconds / 3600
-
-  const avgHoursPerPersonPerDay = (totalHours / Math.max(users.length, 1)) / Math.max(workingDays, 1)
   const standardHoursPerDay = 8
-  const teamUtilizationPercent = avgHoursPerPersonPerDay / standardHoursPerDay
 
   // Hours by Employee
+  let totalTeamExpectedHours = 0;
   const employeeStats = users.map(u => {
     const userEntries = entries.filter(e => e.userId === u.id)
     const userTasks = tasks.filter(t => t.userId === u.id)
+    const userTimeOffs = timeOffs.filter(t => t.userId === u.id)
+    
+    let daysOff = 0;
+    userTimeOffs.forEach(t => {
+      const d = new Date(t.date);
+      const day = d.getDay();
+      if (day !== 0 && day !== 6) { // only subtract if the leave falls on a weekday
+        if (t.type === 'HALF_DAY') {
+          daysOff += 0.5;
+        } else {
+          daysOff += 1;
+        }
+      }
+    });
+
+    const userWorkingDays = Math.max(totalWeekdays - daysOff, 1);
+    totalTeamExpectedHours += (userWorkingDays * standardHoursPerDay);
+
     const uTotalSeconds = userEntries.reduce((acc, e) => acc + e.duration, 0)
     const uTotalHours = uTotalSeconds / 3600
-    const uAvgHrsDay = uTotalHours / Math.max(workingDays, 1)
-    const uUtilization = uAvgHrsDay / standardHoursPerDay
+    const uAvgHrsDay = uTotalHours / userWorkingDays
+    const uUtilization = uTotalHours / (userWorkingDays * standardHoursPerDay)
     
     return {
       id: u.id,
@@ -178,9 +209,14 @@ export async function getTeamReports(month: number, year: number, workingDays: n
       totalHours: uTotalHours,
       tasksLogged: userTasks.length,
       avgHrsDay: uAvgHrsDay,
-      utilization: uUtilization
+      utilization: uUtilization,
+      workingDays: userWorkingDays,
+      daysOff
     }
   })
+
+  const avgHoursPerPersonPerDay = (totalHours / Math.max(users.length, 1)) / (totalWeekdays || 1)
+  const teamUtilizationPercent = totalHours / Math.max(totalTeamExpectedHours, 1)
 
   // Hours by Category
   const categoryStatsRaw = entries.reduce((acc, e) => {
@@ -203,7 +239,8 @@ export async function getTeamReports(month: number, year: number, workingDays: n
     employeeStats,
     categoryStats,
     tasks,
-    users
+    users,
+    totalWeekdays
   }
 }
 

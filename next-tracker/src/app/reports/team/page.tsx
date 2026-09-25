@@ -7,7 +7,7 @@ import { TeamReportView } from "@/components/reports/team-report-view"
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
-export default async function TeamReportsPage(props: { searchParams?: { month?: string, year?: string, days?: string } }) {
+export default async function TeamReportsPage(props: { searchParams?: { month?: string, year?: string } }) {
   const currentUser = await requireAuth()
   if (currentUser.role !== "MANAGER" && currentUser.role !== "ADMIN") {
     redirect("/")
@@ -20,9 +20,8 @@ export default async function TeamReportsPage(props: { searchParams?: { month?: 
   
   const month = parseInt(searchParams.month || currentMonth.toString(), 10)
   const year = parseInt(searchParams.year || currentYear.toString(), 10)
-  const workingDays = parseInt(searchParams.days || "22", 10)
 
-  const data = await getTeamReports(month, year, workingDays)
+  const data = await getTeamReports(month, year)
 
   return (
     <div className="flex flex-col gap-8 w-full max-w-7xl mx-auto py-8">
@@ -41,7 +40,6 @@ export default async function TeamReportsPage(props: { searchParams?: { month?: 
         data={data} 
         month={month} 
         year={year} 
-        workingDays={workingDays} 
       />
     </div>
   )
