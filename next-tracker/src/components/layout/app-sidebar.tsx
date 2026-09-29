@@ -42,9 +42,22 @@ export function AppSidebar() {
   const isAdmin = session?.user?.role === "ADMIN"
   const [isLoggingOut, setIsLoggingOut] = React.useState(false)
 
-  const handleLogout = async () => {
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (isLoggingOut) return
+    
     setIsLoggingOut(true)
-    await signOut({ callbackUrl: "/login" })
+    try {
+      // Use redirect: false to prevent NextAuth from attempting a soft navigation
+      // which can race with React state updates or App Router boundaries.
+      await signOut({ redirect: false })
+      
+      // Force a hard navigation to guarantee session clearance and state reset
+      window.location.href = "/login"
+    } catch (error) {
+      console.error("Logout failed:", error)
+      setIsLoggingOut(false)
+    }
   }
 
   return (

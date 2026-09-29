@@ -92,6 +92,7 @@ model TeamMember {
   team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@id([userId, teamId])
+  @@index([teamId])
 }
 
 // ==========================================
@@ -115,6 +116,8 @@ model Category {
   timeEntries    TimeEntry[]
   tasks          Task[]
   runningTimers  RunningTimer[]
+
+  @@index([userId])
 }
 
 model Project {
@@ -135,6 +138,8 @@ model Project {
   timeEntries    TimeEntry[]
   tasks          Task[]
   runningTimers  RunningTimer[]
+
+  @@index([userId])
 }
 
 // ==========================================
@@ -164,6 +169,7 @@ model TimeEntry {
   @@index([userId, startedAt])
   @@index([taskId])
   @@index([projectId])
+  @@index([categoryId])
 }
 
 model RunningTimer {

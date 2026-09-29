@@ -50,42 +50,44 @@ export default async function ReportsPage(props: { searchParams?: { start?: stri
 
       <ReportFilters entries={data.entries} />
 
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Total Time Summary */}
-        <div className="glass p-6 rounded-2xl flex flex-col justify-center items-center shadow-xl">
-          <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-4">Total Time</h3>
-          <div className="text-5xl font-light neon-text">
-            {formatDuration(data.totalSeconds)}
+      <div className="report-data-container relative transition-all duration-300">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Total Time Summary */}
+          <div className="glass p-6 rounded-2xl flex flex-col justify-center items-center shadow-xl">
+            <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-4">Total Time</h3>
+            <div className="text-5xl font-light neon-text">
+              {formatDuration(data.totalSeconds)}
+            </div>
           </div>
-        </div>
 
-        {/* Efficiency Chart */}
-        <div className="md:col-span-2">
-          <EfficiencyChart data={data.efficiencyData} />
-        </div>
-
-        {/* Category Breakdown */}
-        <div className="glass p-6 rounded-2xl md:col-span-3 shadow-xl mt-4">
-          <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-4">Time by Category</h3>
-          <div className="flex gap-4 overflow-x-auto custom-scrollbar pb-2">
-            {data.byCategory.length === 0 ? (
-              <span className="text-muted-foreground/50">No data for selected period.</span>
-            ) : (
-              data.byCategory.map(cat => (
-                <div key={cat.name} className="flex-shrink-0 bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col items-center justify-center min-w-[120px]">
-                  <span className="text-xs text-muted-foreground uppercase tracking-wider mb-2">{cat.name}</span>
-                  <span className="text-xl font-mono text-foreground">{(cat.duration / 3600).toFixed(1)}h</span>
-                </div>
-              ))
-            )}
+          {/* Efficiency Chart */}
+          <div className="md:col-span-2">
+            <EfficiencyChart data={data.efficiencyData} />
           </div>
-        </div>
-      </section>
 
-      <section className="mt-4">
-        <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-4">Time Entries log</h3>
-        <ReportsTable entries={data.entries} categories={data.categories} />
-      </section>
+          {/* Category Breakdown */}
+          <div className="glass p-6 rounded-2xl md:col-span-3 shadow-xl mt-4">
+            <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-4">Time by Category</h3>
+            <div className="flex gap-4 overflow-x-auto custom-scrollbar pb-2">
+              {data.byCategory.length === 0 ? (
+                <span className="text-muted-foreground/50">No data for selected period.</span>
+              ) : (
+                data.byCategory.map(cat => (
+                  <div key={cat.name} className="flex-shrink-0 bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col items-center justify-center min-w-[120px]">
+                    <span className="text-xs text-muted-foreground uppercase tracking-wider mb-2">{cat.name}</span>
+                    <span className="text-xl font-mono text-foreground">{(cat.duration / 3600).toFixed(1)}h</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-4">
+          <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-4">Time Entries log</h3>
+          <ReportsTable entries={data.entries} categories={data.categories} />
+        </section>
+      </div>
     </div>
   )
 }

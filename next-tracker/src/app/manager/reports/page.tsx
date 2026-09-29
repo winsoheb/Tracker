@@ -1,6 +1,6 @@
 import React from "react"
 import { requireManager } from "@/lib/auth-utils"
-import { getTeamPlannedVsActual, getTeamTaskStats, getTeamWorkloadSummary, getOverdueAndBlockedTasks, getTeamProjectStats } from "@/lib/reports/engine"
+import { getManagerDashboardReport } from "@/lib/reports/engine"
 import { startOfWeek, endOfWeek, subWeeks } from "date-fns"
 import { BarChart3, Clock, CalendarDays, AlertTriangle, CheckCircle2, Activity, Download } from "lucide-react"
 import { EmployeeReportSelector } from "@/components/reports/employee-report-selector"
@@ -34,11 +34,7 @@ export default async function ManagerReportsPage(props: { searchParams?: { perio
   
   const filter = { startDate, endDate }
 
-  const timeStats = await getTeamPlannedVsActual(currentUser, filter)
-  const taskStats = await getTeamTaskStats(currentUser, filter)
-  const teamWorkload = await getTeamWorkloadSummary(currentUser, filter)
-  const attentionTasks = await getOverdueAndBlockedTasks(currentUser, filter)
-  const projectStats = await getTeamProjectStats(currentUser, filter)
+  const { timeStats, taskStats, teamWorkload, attentionTasks, projectStats } = await getManagerDashboardReport(currentUser, filter)
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto py-8">

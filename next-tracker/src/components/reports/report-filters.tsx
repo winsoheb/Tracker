@@ -62,6 +62,15 @@ export function ReportFilters({ entries }: { entries: any[] }) {
     })
   }
 
+  React.useEffect(() => {
+    if (isPending) {
+      document.body.classList.add("reports-loading")
+    } else {
+      document.body.classList.remove("reports-loading")
+    }
+    return () => document.body.classList.remove("reports-loading")
+  }, [isPending])
+
   const exportCSV = () => {
     if (!entries.length) return
     

@@ -35,39 +35,79 @@ export async function getReports(filter: {
     whereClause.projectId = filter.projectId
   }
 
-  const entries = await prisma.timeEntry.findMany({
-    where: whereClause,
-    include: {
-      category: true,
-      project: true
-    },
-    orderBy: {
-      startedAt: "desc"
-    }
-  })
+  const [
+    entries,
+    totalAgg,
+    categoryAgg,
+    rawDailyData,
+    categories,
+    settings
+  ] = await Promise.all([
+    // Table entries (limited for performance)
+    prisma.timeEntry.findMany({
+      where: whereClause,
+      include: {
+        category: true,
+        project: true
+      },
+      orderBy: {
+        startedAt: "desc"
+      },
+      take: 100 // Limit to 100 most recent for the UI table
+    }),
+    
+    // Total time aggregation
+    prisma.timeEntry.aggregate({
+      where: whereClause,
+      _sum: { duration: true }
+    }),
+    
+    // By Category aggregation
+    prisma.timeEntry.groupBy({
+      where: whereClause,
+      by: ['categoryId'],
+      _sum: { duration: true }
+    }),
+    
+    // Minimal data for daily efficiency grouping
+    prisma.timeEntry.findMany({
+      where: whereClause,
+      select: { startedAt: true, duration: true }
+    }),
+    
+    // Support data
+    prisma.category.findMany({
+      where: { isActive: true },
+      orderBy: { name: 'asc' }
+    }),
+    prisma.setting.findUnique({
+      where: { userId }
+    })
+  ])
 
   // Summary logic
-  const totalSeconds = entries.reduce((acc, e) => acc + e.duration, 0)
+  const totalSeconds = totalAgg._sum.duration || 0
   
-  const byCategory = entries.reduce((acc, e) => {
-    const cat = e.category?.name || "Uncategorized"
-    acc[cat] = (acc[cat] || 0) + e.duration
+  // Map categoryId to Category Name
+  const categoryMap = categories.reduce((acc, cat) => {
+    acc[cat.id] = cat.name
     return acc
-  }, {} as Record<string, number>)
+  }, {} as Record<string, string>)
 
-  const categories = await prisma.category.findMany({
-    where: { isActive: true },
-    orderBy: { name: 'asc' }
-  })
-
-  const settings = await prisma.setting.findUnique({
-    where: { userId }
-  })
+  const byCategoryMap: Record<string, number> = {}
+  for (const group of categoryAgg) {
+    const catName = group.categoryId && categoryMap[group.categoryId] ? categoryMap[group.categoryId] : "Uncategorized"
+    byCategoryMap[catName] = (byCategoryMap[catName] || 0) + (group._sum.duration || 0)
+  }
   
+  const byCategory = Object.entries(byCategoryMap)
+    .map(([name, duration]) => ({ name, duration }))
+    .sort((a, b) => b.duration - a.duration)
+
   const dailyGoal = settings?.dailyGoalHours || 8
 
-  // Calculate efficiency data (group entries by day)
-  const groupedByDay = entries.reduce((acc, e) => {
+  // Calculate efficiency data (group raw daily data by day)
+  const groupedByDay = rawDailyData.reduce((acc, e) => {
     const day = format(e.startedAt, "MMM dd")
     acc[day] = (acc[day] || 0) + e.duration
     return acc
@@ -80,9 +120,9 @@ export async function getReports(filter: {
   let chartEndDate = filter.endDate
 
   if (!chartStartDate || !chartEndDate) {
-    if (entries.length > 0) {
-      const dates = entries.map((e: any) => e.startedAt)
-      chartStartDate = startOfDay(new Date(Math.min(...dates.map((d: any) => d.getTime()))))
+    if (rawDailyData.length > 0) {
+      const dates = rawDailyData.map(e => e.startedAt)
+      chartStartDate = startOfDay(new Date(Math.min(...dates.map(d => d.getTime()))))
       chartEndDate = endOfDay(new Date())
     } else {
       chartStartDate = startOfDay(new Date())
@@ -123,9 +163,7 @@ export async function getReports(filter: {
     totalSeconds,
     categories,
     efficiencyData,
-    byCategory: Object.entries(byCategory)
-      .map(([name, duration]) => ({ name, duration }))
-      .sort((a, b) => b.duration - a.duration)
+    byCategory
   }
 }
 

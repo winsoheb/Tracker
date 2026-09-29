@@ -367,3 +367,204 @@ export async function getRecurringTaskStats(currentUser: any, filter: ReportFilt
 
   return Object.values(rMap).sort((a, b) => b.occurrences - a.occurrences)
 }
+
+export async function getManagerDashboardReport(currentUser: any, filter: ReportFilter) {
+  const userIds = await getAuthorizedUserIdsForReport(currentUser, filter)
+  if (userIds.length === 0) {
+    return {
+      timeStats: { plannedMinutes: 0, actualMinutes: 0, unplannedMinutes: 0, varianceMinutes: 0 },
+      taskStats: { total: 0, completed: 0, inProgress: 0, blocked: 0, overdue: 0 },
+      teamWorkload: [],
+      attentionTasks: { blocked: [], overdue: [] },
+      projectStats: []
+    }
+  }
+
+  const now = new Date()
+
+  // 1. Parallelize all base data fetching
+  const [
+    users,
+    tasks,
+    timeEntries,
+    activeTasksCount
+  ] = await Promise.all([
+    // Fetch users for workload summary
+    prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, name: true, email: true }
+    }),
+    
+    // Fetch ALL tasks in this range once, with required relations
+    prisma.task.findMany({
+      where: {
+        userId: { in: userIds },
+        isBlueprint: false,
+        startAt: { gte: filter.startDate },
+        endAt: { lte: filter.endDate }
+      },
+      select: {
+        id: true,
+        userId: true,
+        status: true,
+        dueDate: true,
+        startAt: true,
+        endAt: true,
+        estimatedMinutes: true,
+        title: true,
+        user: { select: { name: true } },
+        project: { select: { name: true } }
+      }
+    }),
+    
+    // Fetch ALL time entries in this range once
+    prisma.timeEntry.findMany({
+      where: {
+        userId: { in: userIds },
+        startedAt: { gte: filter.startDate, lte: filter.endDate }
+      },
+      select: {
+        duration: true,
+        taskId: true,
+        project: { select: { id: true, name: true, status: true } }
+      }
+    }),
+    
+    // DB Aggregation: count active tasks by user
+    prisma.task.groupBy({
+      by: ['userId'],
+      where: {
+        userId: { in: userIds },
+        isBlueprint: false,
+        status: { in: ["TODO", "IN_PROGRESS"] }
+      },
+      _count: { id: true }
+    })
+  ])
+
+  // ==========================================
+  // CALCULATE TIME STATS (Planned vs Actual)
+  // ==========================================
+  let plannedMinutes = 0
+  const plannedMinutesMap: Record<string, number> = {}
+
+  for (const t of tasks) {
+    let taskMins = 0
+    if (t.estimatedMinutes) {
+      taskMins = t.estimatedMinutes
+    } else if (t.endAt && t.startAt) {
+      taskMins = Math.round((t.endAt.getTime() - t.startAt.getTime()) / 60000)
+    }
+    
+    plannedMinutes += taskMins
+    if (!plannedMinutesMap[t.userId]) plannedMinutesMap[t.userId] = 0
+    plannedMinutesMap[t.userId] += taskMins
+  }
+
+  let actualMinutes = 0
+  let unplannedMinutes = 0
+  for (const entry of timeEntries) {
+    const entryMinutes = Math.round(entry.duration / 60)
+    actualMinutes += entryMinutes
+    if (!entry.taskId) {
+      unplannedMinutes += entryMinutes
+    }
+  }
+
+  const timeStats = {
+    plannedMinutes,
+    actualMinutes,
+    unplannedMinutes,
+    varianceMinutes: actualMinutes - plannedMinutes
+  }
+
+  // ==========================================
+  // CALCULATE TASK STATS
+  // ==========================================
+  let completed = 0, inProgress = 0, blockedCount = 0, overdueCount = 0
+  const blockedTasks = []
+  const overdueTasks = []
+
+  for (const t of tasks) {
+    if (t.status === "COMPLETED") completed++
+    if (t.status === "IN_PROGRESS") inProgress++
+    
+    if (t.status === "BLOCKED") {
+      blockedCount++
+      blockedTasks.push(t as any)
+    }
+    
+    if (t.status !== "COMPLETED" && t.dueDate && t.dueDate < now) {
+      overdueCount++
+      overdueTasks.push(t as any)
+    }
+  }
+
+  const taskStats = {
+    total: tasks.length,
+    completed,
+    inProgress,
+    blocked: blockedCount,
+    overdue: overdueCount
+  }
+  
+  const attentionTasks = {
+    blocked: blockedTasks,
+    overdue: overdueTasks
+  }
+
+  // ==========================================
+  // CALCULATE WORKLOAD SUMMARY
+  // ==========================================
+  const taskCounts = Object.fromEntries(activeTasksCount.map(t => [t.userId, t._count.id]))
+  const businessDays = Math.max(0, differenceInBusinessDays(filter.endDate, filter.startDate) + 1)
+  const defaultCapacityMinutes = businessDays * 8 * 60
+
+  const teamWorkload = users.map(u => ({
+    ...u,
+    openTasks: taskCounts[u.id] || 0,
+    plannedMinutes: plannedMinutesMap[u.id] || 0,
+    availableCapacityMinutes: defaultCapacityMinutes,
+    remainingCapacityMinutes: defaultCapacityMinutes - (plannedMinutesMap[u.id] || 0)
+  })).sort((a, b) => b.plannedMinutes - a.plannedMinutes)
+
+  // ==========================================
+  // CALCULATE PROJECT STATS
+  // ==========================================
+  const projectMap: Record<string, { id: string, name: string, status: string, duration: number }> = {}
+  let noProjectDuration = 0
+
+  for (const entry of timeEntries) {
+    if (entry.project) {
+      const pid = entry.project.id
+      if (!projectMap[pid]) {
+        projectMap[pid] = { id: pid, name: entry.project.name, status: entry.project.status, duration: 0 }
+      }
+      projectMap[pid].duration += entry.duration
+    } else {
+      noProjectDuration += entry.duration
+    }
+  }
+
+  const projectStats = Object.values(projectMap)
+    .map(p => ({ ...p, durationMinutes: Math.round(p.duration / 60) }))
+    .sort((a, b) => b.durationMinutes - a.durationMinutes)
+
+  if (noProjectDuration > 0) {
+    projectStats.push({
+      id: "none",
+      name: "No Project",
+      status: "ACTIVE",
+      duration: noProjectDuration,
+      durationMinutes: Math.round(noProjectDuration / 60)
+    })
+  }
+
+  return {
+    timeStats,
+    taskStats,
+    teamWorkload,
+    attentionTasks,
+    projectStats
+  }
+}

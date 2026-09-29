@@ -8,9 +8,18 @@ import { LogOut, Loader2 } from "lucide-react"
 export function SignOutButton() {
   const [isSigningOut, setIsSigningOut] = useState(false)
 
-  const handleSignOut = async () => {
+  const handleSignOut = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (isSigningOut) return
+
     setIsSigningOut(true)
-    await signOut({ callbackUrl: "/login" })
+    try {
+      await signOut({ redirect: false })
+      window.location.href = "/login"
+    } catch (error) {
+      console.error("Logout failed:", error)
+      setIsSigningOut(false)
+    }
   }
 
   return (
