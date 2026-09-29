@@ -42,7 +42,7 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
             <SidebarProvider>
-              <AppSidebar />
+              <AppSidebar initialBrand={brand} />
               <main className="flex-1 overflow-x-hidden flex flex-col relative">
                 <header className="h-16 flex items-center px-6 border-b border-white/5 bg-background/40 backdrop-blur-3xl sticky top-0 z-10">
                   <SidebarTrigger className="mr-4 hover:bg-white/10" />
