@@ -9,6 +9,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { NotificationCenter } from "@/components/layout/notification-center";
 import { GlobalTimerBanner } from "@/components/layout/global-timer-banner";
+import { cookies } from "next/headers";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -22,20 +23,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = cookies();
+  const brandCookie = cookieStore.get("workorbit-brand-theme")?.value;
+  const brand = brandCookie || "blue";
+
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                let brand = localStorage.getItem("workorbit-brand-theme");
-                if (brand) document.documentElement.setAttribute("data-brand", brand);
-              } catch (e) {}
-            `,
-          }}
-        />
-      </head>
+    <html lang="en" suppressHydrationWarning data-brand={brand}>
+      <head />
       <body
         className={`${inter.variable} font-sans antialiased min-h-screen bg-background text-foreground selection:bg-primary/30`}
         suppressHydrationWarning

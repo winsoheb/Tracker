@@ -109,3 +109,21 @@ export async function updateSettings(data: { dailyGoalHours: number, notificatio
   revalidatePath("/")
   return settings
 }
+
+export async function updateThemeSettings(theme: string, accentColor: string) {
+  const userId = await getUserId()
+  const { cookies } = await import("next/headers")
+  
+  const settings = await prisma.setting.upsert({
+    where: { userId },
+    update: { theme, accentColor },
+    create: { userId, theme, accentColor }
+  })
+  
+  const cookieStore = cookies()
+  cookieStore.set("workorbit-brand-theme", accentColor, { path: "/", maxAge: 60 * 60 * 24 * 365 })
+  cookieStore.set("workorbit-theme-mode", theme, { path: "/", maxAge: 60 * 60 * 24 * 365 })
+  
+  revalidatePath("/", "layout")
+  return settings
+}

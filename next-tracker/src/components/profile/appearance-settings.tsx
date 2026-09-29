@@ -2,30 +2,31 @@
 
 import React, { useEffect, useState } from "react"
 import { useTheme } from "next-themes"
-import { Moon, Sun, Palette } from "lucide-react"
+import { Moon, Sun, Palette, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { updateThemeSettings } from "@/lib/actions/settings"
 
 const BRAND_COLORS = [
   { id: "teal", color: "#0d9488" },
   { id: "green", color: "#16a34a" },
   { id: "pink", color: "#ec4899" },
-  { id: "mint", color: "#14b8a6" },
   { id: "orange", color: "#f97316" },
+  { id: "amber", color: "#f59e0b" },
   { id: "blue", color: "#3b82f6" },
   { id: "purple", color: "#a855f7" },
 ]
 
-export function AppearanceSettings() {
+export function AppearanceSettings({ initialTheme = "dark", initialBrand = "blue" }: { initialTheme?: string, initialBrand?: string }) {
   const { setTheme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
-  const [currentBrand, setCurrentBrand] = useState("purple")
+  const [currentBrand, setCurrentBrand] = useState(initialBrand)
+  const [isPending, startTransition] = React.useTransition()
 
   useEffect(() => {
     setMounted(true)
-    const saved = localStorage.getItem("workorbit-brand-theme") || "purple"
-    setCurrentBrand(saved)
-    document.documentElement.setAttribute("data-brand", saved)
-  }, [])
+    // Always sync the html attribute so the live preview works immediately
+    document.documentElement.setAttribute("data-brand", currentBrand)
+  }, [currentBrand])
 
   if (!mounted) return null
 
@@ -33,12 +34,21 @@ export function AppearanceSettings() {
 
   const handleBrandChange = (id: string) => {
     setCurrentBrand(id)
-    localStorage.setItem("workorbit-brand-theme", id)
     document.documentElement.setAttribute("data-brand", id)
+    startTransition(() => {
+      updateThemeSettings(resolvedTheme || "dark", id)
+    })
+  }
+
+  const handleThemeChange = (newTheme: string) => {
+    setTheme(newTheme)
+    startTransition(() => {
+      updateThemeSettings(newTheme, currentBrand)
+    })
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-lg space-y-8 mt-6">
+    <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-md rounded-3xl p-8 shadow-lg border border-border space-y-8 mt-6">
       <h3 className="text-xl font-semibold flex items-center gap-2">
         <Palette className="w-5 h-5 text-primary" /> Appearance
       </h3>
@@ -52,14 +62,14 @@ export function AppearanceSettings() {
             <Button
               variant={!isDark ? "default" : "outline"}
               className="flex-1 max-w-[200px] gap-2 rounded-xl h-12 border-2"
-              onClick={() => setTheme("light")}
+              onClick={() => handleThemeChange("light")}
             >
               <Sun className="w-4 h-4" /> Light
             </Button>
             <Button
               variant={isDark ? "default" : "outline"}
               className="flex-1 max-w-[200px] gap-2 rounded-xl h-12 border-2"
-              onClick={() => setTheme("dark")}
+              onClick={() => handleThemeChange("dark")}
             >
               <Moon className="w-4 h-4" /> Dark
             </Button>
@@ -75,19 +85,20 @@ export function AppearanceSettings() {
               <button
                 key={brand.id}
                 onClick={() => handleBrandChange(brand.id)}
-                className={`w-10 h-10 rounded-full transition-all duration-300 transform hover:scale-110 flex items-center justify-center ${
+                className={`w-12 h-12 rounded-full transition-all duration-300 transform hover:scale-110 flex items-center justify-center ${
                   currentBrand === brand.id 
-                    ? "ring-4 ring-offset-2 ring-offset-background scale-110" 
-                    : "ring-0"
+                    ? "ring-4 ring-offset-4 ring-offset-background scale-110" 
+                    : "ring-1 ring-border/50 shadow-sm"
                 }`}
                 style={{ 
                   backgroundColor: brand.color,
                   '--tw-ring-color': brand.color
                 } as React.CSSProperties}
                 aria-label={`Select ${brand.id} theme`}
+                aria-selected={currentBrand === brand.id}
               >
                 {currentBrand === brand.id && (
-                  <div className="w-2 h-2 rounded-full bg-white opacity-90" />
+                  <Check className="w-6 h-6 text-white drop-shadow-md" />
                 )}
               </button>
             ))}

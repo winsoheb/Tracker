@@ -4,12 +4,16 @@ import { SignOutButton } from "@/components/auth/signout-button"
 import { TimeOffManager } from "@/components/profile/time-off-manager"
 import { AppearanceSettings } from "@/components/profile/appearance-settings"
 import { getUserTimeOffs } from "@/lib/actions/timeoff"
+import { getSettings } from "@/lib/actions/settings"
 
 export default async function ProfilePage() {
   const user = await requireAuth() as any
   const currentMonth = new Date().getMonth() + 1
   const currentYear = new Date().getFullYear()
   const timeOffs = await getUserTimeOffs(user.id, currentMonth, currentYear)
+  const settings = await getSettings()
+  const initialTheme = settings?.theme || "dark"
+  const initialBrand = settings?.accentColor || "blue"
 
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -79,7 +83,7 @@ export default async function ProfilePage() {
           </div>
         </div>
       </div>
-      <AppearanceSettings />
+      <AppearanceSettings initialTheme={initialTheme} initialBrand={initialBrand} />
       <TimeOffManager userId={user.id} initialTimeOffs={timeOffs} />
     </div>
   )
