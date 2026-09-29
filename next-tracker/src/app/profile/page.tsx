@@ -2,6 +2,7 @@ import { requireAuth } from "@/lib/auth-utils"
 import { Mail, Briefcase, Clock, ShieldCheck, User as UserIcon } from "lucide-react"
 import { SignOutButton } from "@/components/auth/signout-button"
 import { TimeOffManager } from "@/components/profile/time-off-manager"
+import { AppearanceSettings } from "@/components/profile/appearance-settings"
 import { getUserTimeOffs } from "@/lib/actions/timeoff"
 
 export default async function ProfilePage() {
@@ -78,7 +79,7 @@ export default async function ProfilePage() {
           </div>
         </div>
       </div>
-      
+      <AppearanceSettings />
       <TimeOffManager userId={user.id} initialTimeOffs={timeOffs} />
     </div>
   )

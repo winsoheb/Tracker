@@ -24,6 +24,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                let brand = localStorage.getItem("workorbit-brand-theme");
+                if (brand) document.documentElement.setAttribute("data-brand", brand);
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${inter.variable} font-sans antialiased min-h-screen bg-background text-foreground selection:bg-primary/30`}
         suppressHydrationWarning

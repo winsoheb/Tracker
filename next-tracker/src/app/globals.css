@@ -140,6 +140,24 @@
     @apply font-sans antialiased;
     color-scheme: dark;
   }
+
+  :root {
+    --theme-teal: oklch(0.6 0.15 180);
+    --theme-green: oklch(0.6 0.2 140);
+    --theme-pink: oklch(0.6 0.25 10);
+    --theme-mint: oklch(0.7 0.15 160);
+    --theme-orange: oklch(0.65 0.2 40);
+    --theme-blue: oklch(0.6 0.2 240);
+    --theme-purple: oklch(0.6 0.25 280);
+  }
+
+  html[data-brand="teal"], html.dark[data-brand="teal"] { --primary: var(--theme-teal); --sidebar-primary: var(--theme-teal); --ring: var(--theme-teal); }
+  html[data-brand="green"], html.dark[data-brand="green"] { --primary: var(--theme-green); --sidebar-primary: var(--theme-green); --ring: var(--theme-green); }
+  html[data-brand="pink"], html.dark[data-brand="pink"] { --primary: var(--theme-pink); --sidebar-primary: var(--theme-pink); --ring: var(--theme-pink); }
+  html[data-brand="mint"], html.dark[data-brand="mint"] { --primary: var(--theme-mint); --sidebar-primary: var(--theme-mint); --ring: var(--theme-mint); }
+  html[data-brand="orange"], html.dark[data-brand="orange"] { --primary: var(--theme-orange); --sidebar-primary: var(--theme-orange); --ring: var(--theme-orange); }
+  html[data-brand="blue"], html.dark[data-brand="blue"] { --primary: var(--theme-blue); --sidebar-primary: var(--theme-blue); --ring: var(--theme-blue); }
+  html[data-brand="purple"], html.dark[data-brand="purple"] { --primary: var(--theme-purple); --sidebar-primary: var(--theme-purple); --ring: var(--theme-purple); }
 }
 
 /* Glassmorphism utilities */
