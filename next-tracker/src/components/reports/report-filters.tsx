@@ -14,9 +14,14 @@ export function ReportFilters({ entries }: { entries: any[] }) {
   const pathname = usePathname()
   
   const currentRange = searchParams.get("range") || "today"
+  const [dateRange, setDateRange] = useState<{from?: Date, to?: Date}>({
+    from: searchParams.get("start") ? new Date(searchParams.get("start") as string) : undefined,
+    to: searchParams.get("end") ? new Date(searchParams.get("end") as string) : undefined
+  })
+  const [calendarOpen, setCalendarOpen] = useState(false)
 
-  const setRange = (range: string) => {
-    const params = new URLSearchParams(searchParams)
+  const setRange = (range: string, customStart?: Date, customEnd?: Date) => {
+    const params = new URLSearchParams(searchParams.toString())
     params.set("range", range)
     
     const today = new Date()
@@ -40,18 +45,18 @@ export function ReportFilters({ entries }: { entries: any[] }) {
       start.setHours(0,0,0,0)
       params.set("start", start.toISOString())
       params.set("end", endOfToday.toISOString())
-    } else if (range === "this_week") {
-      params.set("start", startOfWeek(today).toISOString())
-      params.set("end", endOfToday.toISOString())
-    } else if (range === "this_month") {
-      params.set("start", startOfMonth(today).toISOString())
-      params.set("end", endOfToday.toISOString())
+    } else if (range === "custom" && customStart && customEnd) {
+      customStart.setHours(0,0,0,0)
+      customEnd.setHours(23,59,59,999)
+      params.set("start", customStart.toISOString())
+      params.set("end", customEnd.toISOString())
     } else {
       params.delete("start")
       params.delete("end")
     }
     
     router.push(`${pathname}?${params.toString()}`)
+    router.refresh()
   }
 
   const exportCSV = () => {
@@ -81,7 +86,7 @@ export function ReportFilters({ entries }: { entries: any[] }) {
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 mb-6 p-4 glass rounded-xl">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <Button 
           variant={currentRange === "today" ? "default" : "outline"} 
           size="sm" 
@@ -114,6 +119,32 @@ export function ReportFilters({ entries }: { entries: any[] }) {
         >
           Last 30 Days
         </Button>
+
+        <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+          <PopoverTrigger asChild>
+            <Button variant={currentRange === "custom" ? "default" : "outline"} size="sm" className="rounded-lg">
+              <CalendarIcon className="w-4 h-4 mr-2" />
+              {currentRange === "custom" && dateRange.from && dateRange.to ? (
+                `${format(dateRange.from, "MMM d")} - ${format(dateRange.to, "MMM d")}`
+              ) : "Custom Range"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              initialFocus
+              mode="range"
+              selected={dateRange as any}
+              onSelect={(range: any) => {
+                setDateRange(range)
+                if (range?.from && range?.to) {
+                  setRange("custom", range.from, range.to)
+                  setCalendarOpen(false)
+                }
+              }}
+              numberOfMonths={2}
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
       <Button onClick={exportCSV} variant="outline" size="sm" className="rounded-lg border-primary/50 text-primary hover:bg-primary hover:text-white">
