@@ -79,6 +79,7 @@ export default async function ProfilePage() {
                 <p className="text-base text-slate-900 dark:text-slate-100 mt-1">{user.timezone || "System Default"}</p>
               </div>
             </div>
+          </div>
         </div>
       </div>
       <TimeOffManager userId={user.id} initialTimeOffs={timeOffs} />
