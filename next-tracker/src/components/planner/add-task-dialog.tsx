@@ -11,7 +11,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Plus, Loader2, ChevronDown, ChevronUp } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
+import { format } from "date-fns"
+import { Plus, Loader2, ChevronDown, ChevronUp, Calendar as CalendarIcon } from "lucide-react"
 import { RecurrenceSelector, RecurrenceState } from "./recurrence-selector"
 import { ReminderSelector } from "./reminder-selector"
 
@@ -33,6 +36,7 @@ export function AddTaskDialog({
   const [hour, setHour] = useState(9)
   const [priority, setPriority] = useState("MEDIUM")
   const [assignedUserId, setAssignedUserId] = useState<string | undefined>(targetUserId)
+  const [selectedDate, setSelectedDate] = useState<Date>(date)
   
   const [recurrence, setRecurrence] = useState<RecurrenceState>({
     frequency: "NONE",
@@ -45,8 +49,9 @@ export function AddTaskDialog({
   useEffect(() => {
     if (open) {
       setAssignedUserId(targetUserId)
+      setSelectedDate(date || new Date())
     }
-  }, [open, targetUserId])
+  }, [open, targetUserId, date])
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,7 +59,7 @@ export function AddTaskDialog({
 
     setIsPending(true)
     try {
-      const startAt = new Date(date)
+      const startAt = new Date(selectedDate)
       startAt.setHours(hour, 0, 0, 0)
       const endAt = new Date(startAt.getTime() + minutes * 60000)
 
@@ -114,6 +119,23 @@ export function AddTaskDialog({
               required
               className="bg-white/5 border-white/10 focus-visible:ring-primary/50 focus-visible:border-primary/50 transition-all rounded-xl h-12 text-base shadow-inner"
             />
+          </div>
+
+          <div className="space-y-2 group">
+            <label className="text-xs font-semibold tracking-wider uppercase text-muted-foreground group-focus-within:text-primary transition-colors">Date</label>
+            <Popover>
+              <PopoverTrigger className="w-full flex items-center justify-start text-left font-normal bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white h-12 rounded-xl px-4 transition-all">
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(d) => d && setSelectedDate(d)}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="grid grid-cols-2 gap-5">
@@ -186,7 +208,7 @@ export function AddTaskDialog({
           </div>
 
           <RecurrenceSelector 
-            taskDate={date}
+            taskDate={selectedDate}
             value={recurrence}
             onChange={setRecurrence}
           />
