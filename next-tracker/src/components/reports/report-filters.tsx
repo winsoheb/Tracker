@@ -2,7 +2,7 @@
 
 import React, { useState } from "react"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { CalendarIcon, Download } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
@@ -121,17 +121,16 @@ export function ReportFilters({ entries }: { entries: any[] }) {
         </Button>
 
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-          <PopoverTrigger asChild>
-            <Button variant={currentRange === "custom" ? "default" : "outline"} size="sm" className="rounded-lg">
-              <CalendarIcon className="w-4 h-4 mr-2" />
-              {currentRange === "custom" && dateRange.from && dateRange.to ? (
-                `${format(dateRange.from, "MMM d")} - ${format(dateRange.to, "MMM d")}`
-              ) : "Custom Range"}
-            </Button>
+          <PopoverTrigger 
+            className={buttonVariants({ variant: currentRange === "custom" ? "default" : "outline", size: "sm", className: "rounded-lg" })}
+          >
+            <CalendarIcon className="w-4 h-4 mr-2" />
+            {currentRange === "custom" && dateRange.from && dateRange.to ? (
+              `${format(dateRange.from, "MMM d")} - ${format(dateRange.to, "MMM d")}`
+            ) : "Custom Range"}
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar
-              initialFocus
               mode="range"
               selected={dateRange as any}
               onSelect={(range: any) => {
