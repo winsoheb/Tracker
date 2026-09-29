@@ -120,7 +120,7 @@ export async function updateThemeSettings(theme: string, accentColor: string) {
     create: { userId, theme, accentColor }
   })
   
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   cookieStore.set("workorbit-brand-theme", accentColor, { path: "/", maxAge: 60 * 60 * 24 * 365 })
   cookieStore.set("workorbit-theme-mode", theme, { path: "/", maxAge: 60 * 60 * 24 * 365 })
   

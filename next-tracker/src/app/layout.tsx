@@ -18,12 +18,12 @@ export const metadata: Metadata = {
   description: "A premium, futuristic productivity application",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const brandCookie = cookieStore.get("workorbit-brand-theme")?.value;
   const brand = brandCookie || "blue";
 
