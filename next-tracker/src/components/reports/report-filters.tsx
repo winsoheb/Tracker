@@ -20,8 +20,9 @@ export function ReportFilters({ entries }: { entries: any[] }) {
     to: searchParams.get("end") ? new Date(searchParams.get("end") as string) : undefined
   })
   const [calendarOpen, setCalendarOpen] = useState(false)
-
-  const getHref = (range: string, customStart?: Date, customEnd?: Date) => {
+  const [isPending, startTransition] = React.useTransition()
+  
+  const setRange = (range: string, customStart?: Date, customEnd?: Date) => {
     const params = new URLSearchParams(searchParams.toString())
     params.set("range", range)
     
@@ -56,7 +57,9 @@ export function ReportFilters({ entries }: { entries: any[] }) {
       params.delete("end")
     }
     
-    return `${pathname}?${params.toString()}`
+    startTransition(() => {
+      router.push(`${pathname}?${params.toString()}`)
+    })
   }
 
   const exportCSV = () => {
@@ -85,32 +88,40 @@ export function ReportFilters({ entries }: { entries: any[] }) {
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 mb-6 p-4 glass rounded-xl">
+    <div className={`flex flex-wrap items-center justify-between gap-4 mb-6 p-4 glass rounded-xl transition-opacity duration-300 ${isPending ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
       <div className="flex items-center gap-2 flex-wrap">
-        <Link 
-          href={getHref("today")}
-          className={buttonVariants({ variant: currentRange === "today" ? "default" : "outline", size: "sm", className: "rounded-lg" })}
+        <Button 
+          variant={currentRange === "today" ? "default" : "outline"} 
+          size="sm" 
+          onClick={() => setRange("today")}
+          className="rounded-lg"
         >
           Today
-        </Link>
-        <Link 
-          href={getHref("all")}
-          className={buttonVariants({ variant: currentRange === "all" ? "default" : "outline", size: "sm", className: "rounded-lg" })}
+        </Button>
+        <Button 
+          variant={currentRange === "all" ? "default" : "outline"} 
+          size="sm" 
+          onClick={() => setRange("all")}
+          className="rounded-lg"
         >
           All Time
-        </Link>
-        <Link 
-          href={getHref("7d")}
-          className={buttonVariants({ variant: currentRange === "7d" ? "default" : "outline", size: "sm", className: "rounded-lg" })}
+        </Button>
+        <Button 
+          variant={currentRange === "7d" ? "default" : "outline"} 
+          size="sm" 
+          onClick={() => setRange("7d")}
+          className="rounded-lg"
         >
           Last 7 Days
-        </Link>
-        <Link 
-          href={getHref("30d")}
-          className={buttonVariants({ variant: currentRange === "30d" ? "default" : "outline", size: "sm", className: "rounded-lg" })}
+        </Button>
+        <Button 
+          variant={currentRange === "30d" ? "default" : "outline"} 
+          size="sm" 
+          onClick={() => setRange("30d")}
+          className="rounded-lg"
         >
           Last 30 Days
-        </Link>
+        </Button>
 
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger 
@@ -128,7 +139,7 @@ export function ReportFilters({ entries }: { entries: any[] }) {
               onSelect={(range: any) => {
                 setDateRange(range)
                 if (range?.from && range?.to) {
-                  router.push(getHref("custom", range.from, range.to))
+                  setRange("custom", range.from, range.to)
                   setCalendarOpen(false)
                 }
               }}
