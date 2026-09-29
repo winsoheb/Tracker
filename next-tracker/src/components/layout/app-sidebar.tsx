@@ -130,11 +130,13 @@ export function AppSidebar({ initialBrand = "blue" }: { initialBrand?: string })
       </SidebarContent>
       <SidebarFooter className="p-4 flex flex-col gap-2">
         <Dialog>
-          <DialogTrigger asChild>
-            <button className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all font-medium text-sm border border-primary/20">
-              <Palette className="w-4 h-4" />
-              Appearance
-            </button>
+          <DialogTrigger 
+            render={
+              <button className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all font-medium text-sm border border-primary/20" />
+            }
+          >
+            <Palette className="w-4 h-4" />
+            Appearance
           </DialogTrigger>
           <DialogContent className="max-w-xl p-0 overflow-hidden bg-transparent border-none shadow-none">
             <DialogTitle className="sr-only">Appearance Settings</DialogTitle>
