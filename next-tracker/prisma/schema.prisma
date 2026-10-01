@@ -128,6 +128,8 @@ model Project {
   categoryId     String?
   color          String?
   status         String          @default("ACTIVE") // ACTIVE, PAUSED, COMPLETED, ARCHIVED
+  health         String          @default("ON_TRACK") // ON_TRACK, AT_RISK, CRITICAL
+  progress       Float           @default(0)
   startDate      DateTime?
   dueDate        DateTime?
   createdAt      DateTime        @default(now())
@@ -138,6 +140,15 @@ model Project {
   timeEntries    TimeEntry[]
   tasks          Task[]
   runningTimers  RunningTimer[]
+  
+  phases         ProjectPhase[]
+  milestones     ProjectMilestone[]
+  risks          ProjectRisk[]
+  issues         ProjectIssue[]
+  decisions      ProjectDecision[]
+  dependencies   ProjectDependency[]
+  changeLogs     ProjectChangeLog[]
+  documents      ProjectDocument[]
 
   @@index([userId])
 }
@@ -234,6 +245,7 @@ model Task {
   id               String          @id @default(uuid())
   userId           String
   projectId        String?
+  phaseId          String?
   categoryId       String?
   title            String
   description      String?
@@ -264,6 +276,7 @@ model Task {
 
   user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   project          Project?        @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  phase            ProjectPhase?   @relation(fields: [phaseId], references: [id], onDelete: SetNull)
   category         Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   timeEntries      TimeEntry[]
   runningTimers    RunningTimer[]
@@ -272,6 +285,7 @@ model Task {
   @@index([userId, startAt])
   @@index([status])
   @@index([projectId])
+  @@index([phaseId])
   @@index([recurrenceId])
   @@index([isBlueprint])
 }
@@ -372,3 +386,176 @@ model TimeOff {
 
   @@index([userId, date])
 }
+
+// ==========================================
+// PROJECT EXTENSIONS (Document Import & Tracking)
+// ==========================================
+
+model ProjectPhase {
+  id             String          @id @default(uuid())
+  projectId      String
+  name           String
+  description    String?
+  goal           String?
+  status         String          @default("PLANNING") // PLANNING, ACTIVE, COMPLETED, ON_HOLD
+  progress       Float           @default(0)
+  startDate      DateTime?
+  targetDate     DateTime?
+  ownerId        String?
+  
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  project        Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  owner          User?           @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  
+  tasks          Task[]
+  milestones     ProjectMilestone[]
+  risks          ProjectRisk[]
+  issues         ProjectIssue[]
+  decisions      ProjectDecision[]
+  dependencies   ProjectDependency[]
+  changeLogs     ProjectChangeLog[]
+
+  @@index([projectId])
+}
+
+model ProjectMilestone {
+  id             String          @id @default(uuid())
+  projectId      String
+  phaseId        String?
+  title          String
+  description    String?
+  date           DateTime?
+  status         String          @default("PENDING") // PENDING, ACHIEVED, MISSED
+  
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  project        Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phase          ProjectPhase?   @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+
+  @@index([projectId])
+}
+
+model ProjectRisk {
+  id             String          @id @default(uuid())
+  projectId      String
+  phaseId        String?
+  title          String
+  description    String?
+  severity       String          @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  status         String          @default("IDENTIFIED") // IDENTIFIED, MITIGATED, REALIZED
+  dueDate        DateTime?
+  resolution     String?
+  ownerId        String?
+  
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  project        Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phase          ProjectPhase?   @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+  owner          User?           @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+
+  @@index([projectId])
+}
+
+model ProjectIssue {
+  id             String          @id @default(uuid())
+  projectId      String
+  phaseId        String?
+  title          String
+  description    String?
+  severity       String          @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  status         String          @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, CLOSED
+  dueDate        DateTime?
+  resolution     String?
+  ownerId        String?
+  
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  project        Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phase          ProjectPhase?   @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+  owner          User?           @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+
+  @@index([projectId])
+}
+
+model ProjectDecision {
+  id             String          @id @default(uuid())
+  projectId      String
+  phaseId        String?
+  title          String
+  decision       String
+  reason         String?
+  date           DateTime?
+  ownerId        String?
+  
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  project        Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phase          ProjectPhase?   @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+  owner          User?           @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+
+  @@index([projectId])
+}
+
+model ProjectDependency {
+  id             String          @id @default(uuid())
+  projectId      String
+  phaseId        String?
+  description    String
+  blocking       Boolean         @default(true)
+  blockedBy      String?
+  
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  project        Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phase          ProjectPhase?   @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+
+  @@index([projectId])
+}
+
+model ProjectChangeLog {
+  id             String          @id @default(uuid())
+  projectId      String
+  phaseId        String?
+  taskId         String?
+  date           DateTime        @default(now())
+  change         String
+  description    String?
+  reason         String?
+  userId         String
+  
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  project        Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phase          ProjectPhase?   @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+model ProjectDocument {
+  id             String          @id @default(uuid())
+  projectId      String
+  name           String
+  type           String          // e.g. "md", "csv"
+  size           Int             @default(0)
+  content        String          // Storing the raw markdown/text to avoid external buckets for MVP
+  url            String?
+  uploadedById   String
+  
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  project        Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploadedBy     User            @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+

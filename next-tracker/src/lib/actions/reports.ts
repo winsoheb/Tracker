@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 
 import { requireAuth } from "@/lib/auth-utils"
 import { format } from "date-fns"
+import { Prisma } from "@prisma/client"
 
 async function getUserId() {
   const user = await requireAuth()
@@ -69,11 +70,19 @@ export async function getReports(filter: {
       _sum: { duration: true }
     }),
     
-    // Minimal data for daily efficiency grouping
-    prisma.timeEntry.findMany({
-      where: whereClause,
-      select: { startedAt: true, duration: true }
-    }),
+    // Minimal data for daily efficiency grouping (SQL aggregation)
+    prisma.$queryRaw<Array<{ date: Date, duration: bigint }>>`
+      SELECT 
+        DATE_TRUNC('day', "startedAt") as "date",
+        SUM("duration") as "duration"
+      FROM "TimeEntry"
+      WHERE "userId" = ${userId}
+      ${filter.startDate ? Prisma.sql`AND "startedAt" >= ${filter.startDate}` : Prisma.empty}
+      ${filter.endDate ? Prisma.sql`AND "startedAt" <= ${filter.endDate}` : Prisma.empty}
+      ${filter.categoryId && filter.categoryId !== "ALL" ? Prisma.sql`AND "categoryId" = ${filter.categoryId}` : Prisma.empty}
+      ${filter.projectId && filter.projectId !== "ALL" ? Prisma.sql`AND "projectId" = ${filter.projectId}` : Prisma.empty}
+      GROUP BY DATE_TRUNC('day', "startedAt")
+    `,
     
     // Support data
     prisma.category.findMany({
@@ -108,8 +117,8 @@ export async function getReports(filter: {
 
   // Calculate efficiency data (group raw daily data by day)
   const groupedByDay = rawDailyData.reduce((acc, e) => {
-    const day = format(e.startedAt, "MMM dd")
-    acc[day] = (acc[day] || 0) + e.duration
+    const day = format(new Date(e.date), "MMM dd")
+    acc[day] = (acc[day] || 0) + Number(e.duration)
     return acc
   }, {} as Record<string, number>)
 
@@ -121,7 +130,7 @@ export async function getReports(filter: {
 
   if (!chartStartDate || !chartEndDate) {
     if (rawDailyData.length > 0) {
-      const dates = rawDailyData.map(e => e.startedAt)
+      const dates = rawDailyData.map(e => new Date(e.date))
       chartStartDate = startOfDay(new Date(Math.min(...dates.map(d => d.getTime()))))
       chartEndDate = endOfDay(new Date())
     } else {
