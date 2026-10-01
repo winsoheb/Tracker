@@ -47,6 +47,14 @@ model User {
   activityEvents ActivityEvent[]
   auditLogs      AuditLog[]
   timeOffs       TimeOff[]
+
+  // Project Extensions
+  ownedPhases    ProjectPhase[]
+  ownedRisks     ProjectRisk[]
+  ownedIssues    ProjectIssue[]
+  ownedDecisions ProjectDecision[]
+  projectChanges ProjectChangeLog[]
+  uploadedDocs   ProjectDocument[]
 }
 
 // ==========================================
