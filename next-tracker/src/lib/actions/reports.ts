@@ -193,68 +193,67 @@ export async function getTeamReports(month: number, year: number) {
     }
   }
 
-  const users = await prisma.user.findMany({
-    select: { id: true, name: true, role: true }
-  })
+  const [users, categories, entryAgg, taskAgg, timeOffs, totalAgg] = await Promise.all([
+    prisma.user.findMany({ select: { id: true, name: true, role: true } }),
+    prisma.category.findMany({ select: { id: true, name: true } }),
+    prisma.timeEntry.groupBy({
+      by: ['userId'],
+      where: { startedAt: { gte: startDate, lte: endDate } },
+      _sum: { duration: true }
+    }),
+    prisma.task.groupBy({
+      by: ['userId'],
+      where: { startAt: { gte: startDate, lte: endDate }, isBlueprint: false },
+      _count: { id: true }
+    }),
+    prisma.timeOff.findMany({
+      where: { date: { gte: startDate, lte: endDate }, status: "APPROVED" }
+    }),
+    prisma.timeEntry.aggregate({
+      where: { startedAt: { gte: startDate, lte: endDate } },
+      _sum: { duration: true }
+    })
+  ])
 
-  const entries = await prisma.timeEntry.findMany({
-    where: { startedAt: { gte: startDate, lte: endDate } },
-    include: { category: true, user: true }
-  })
-
-  const tasks = await prisma.task.findMany({
-    where: { 
-      startAt: { gte: startDate, lte: endDate },
-      isBlueprint: false
-    },
-    include: { user: true, project: true }
-  })
-
-  const timeOffs = await prisma.timeOff.findMany({
-    where: {
-      date: { gte: startDate, lte: endDate },
-      status: "APPROVED"
-    }
-  })
-
-  const totalSeconds = entries.reduce((acc, e) => acc + e.duration, 0)
+  const totalSeconds = totalAgg._sum.duration || 0
   const totalHours = totalSeconds / 3600
   const standardHoursPerDay = 8
 
   // Hours by Employee
   let totalTeamExpectedHours = 0;
+  let totalTasksCount = 0;
   const employeeStats = users.map(u => {
-    const userEntries = entries.filter(e => e.userId === u.id)
-    const userTasks = tasks.filter(t => t.userId === u.id)
+    const uEntry = entryAgg.find(e => e.userId === u.id)
+    const uTask = taskAgg.find(t => t.userId === u.id)
     const userTimeOffs = timeOffs.filter(t => t.userId === u.id)
     
     let daysOff = 0;
     userTimeOffs.forEach(t => {
       const d = new Date(t.date);
       const day = d.getDay();
-      if (day !== 0 && day !== 6) { // only subtract if the leave falls on a weekday
-        if (t.type === 'HALF_DAY') {
-          daysOff += 0.5;
-        } else {
-          daysOff += 1;
-        }
+      if (day !== 0 && day !== 6) { 
+        if (t.type === 'HALF_DAY') daysOff += 0.5;
+        else daysOff += 1;
       }
     });
 
     const userWorkingDays = Math.max(totalWeekdays - daysOff, 1);
     totalTeamExpectedHours += (userWorkingDays * standardHoursPerDay);
 
-    const uTotalSeconds = userEntries.reduce((acc, e) => acc + e.duration, 0)
+    const uTotalSeconds = uEntry?._sum.duration || 0
     const uTotalHours = uTotalSeconds / 3600
     const uAvgHrsDay = uTotalHours / userWorkingDays
     const uUtilization = uTotalHours / (userWorkingDays * standardHoursPerDay)
     
+    const tasksLogged = uTask?._count.id || 0
+    totalTasksCount += tasksLogged
+
     return {
       id: u.id,
       name: u.name,
       role: u.role,
       totalHours: uTotalHours,
-      tasksLogged: userTasks.length,
+      tasksLogged,
       avgHrsDay: uAvgHrsDay,
       utilization: uUtilization,
       workingDays: userWorkingDays,
@@ -266,9 +265,20 @@ export async function getTeamReports(month: number, year: number) {
   const teamUtilizationPercent = totalHours / Math.max(totalTeamExpectedHours, 1)
 
   // Hours by Category
-  const categoryStatsRaw = entries.reduce((acc, e) => {
-    const cat = e.category?.name || "Uncategorized"
-    acc[cat] = (acc[cat] || 0) + e.duration
+  const categoryAgg = await prisma.timeEntry.groupBy({
+    by: ['categoryId'],
+    where: { startedAt: { gte: startDate, lte: endDate } },
+    _sum: { duration: true }
+  })
+
+  const catMap = categories.reduce((acc, cat) => {
+    acc[cat.id] = cat.name;
+    return acc;
+  }, {} as Record<string, string>)
+
+  const categoryStatsRaw = categoryAgg.reduce((acc, group) => {
+    const cat = group.categoryId && catMap[group.categoryId] ? catMap[group.categoryId] : "Uncategorized"
+    acc[cat] = (acc[cat] || 0) + (group._sum.duration || 0)
     return acc
   }, {} as Record<string, number>)
 
@@ -280,12 +290,12 @@ export async function getTeamReports(month: number, year: number) {
 
   return {
     totalHours,
-    totalTasks: tasks.length,
+    totalTasks: totalTasksCount,
     avgHoursPerPersonPerDay,
     teamUtilizationPercent,
     employeeStats,
     categoryStats,
-    tasks,
+    tasks: [], // Removing raw tasks payload as it crashes frontend/network if huge
     users,
     totalWeekdays
   }
