@@ -3,6 +3,7 @@ import { getTeamReports } from "@/lib/actions/reports"
 import { requireAuth } from "@/lib/auth-utils"
 import { redirect } from "next/navigation"
 import { TeamReportView } from "@/components/reports/team-report-view"
+import { TimesheetUpload } from "@/components/reports/timesheet-upload"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -33,6 +34,9 @@ export default async function TeamReportsPage(props: { searchParams?: { month?: 
           <p className="text-muted-foreground tracking-wide">
             Monthly utilization metrics and weekly 1:1 sync log.
           </p>
+        </div>
+        <div className="flex items-center gap-4">
+          <TimesheetUpload />
         </div>
       </header>
 
